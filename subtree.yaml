@@ -1,2 +1,8 @@
 # Managed by subtree CLI - https://github.com/21-DOT-DEV/subtree
-subtrees: []
+subtrees:
+- name: openssl
+  remote: https://github.com/openssl/openssl
+  prefix: Vendor/openssl
+  commit: 2fd2a696c9dd4861f8c2e7a5b801287b1cb33c9f
+  branch: openssl-3.6.0
+  squash: true
