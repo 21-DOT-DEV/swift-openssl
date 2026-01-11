@@ -1,0 +1,30 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Swift files
+*.swift text diff=swift
+
+# C files (upstream library code)
+*.c text diff=c
+*.h text diff=c
+
+# Upstream C library in Sources should be marked as vendored
+Sources/libcrypto/**    linguist-vendored
+Sources/libssl/**       linguist-vendored
+
+# Vendor/development directories
+Vendor/**                   export-ignore linguist-vendored
+.build/**                   export-ignore
+.swiftpm/**                 export-ignore
+.windsurf/**                export-ignore
+
+# CI/CD and tooling configs
+subtree.yaml                export-ignore
+
+# Git and editor files
+.gitignore                  export-ignore
+.DS_Store                   export-ignore
+
+# Package lockfile (not needed for library consumers)
+Package.resolved            export-ignore linguist-generated
+
