@@ -1,5 +1,5 @@
 {
-  "originHash" : "e05185f14fd4bd3ee7b64ccbf663533cce99c1cb9aaacca8d98109b7bcc2437c",
+  "originHash" : "b3412d77180b70c67438e153e4a97402c1bc0d9f79cd1de52c9f1a7161b71e8e",
   "pins" : [
     {
       "identity" : "swift-artifact-parser",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/21-DOT-DEV/swift-plugin-subtree.git",
       "state" : {
-        "revision" : "a050c36389898d5760b9be7a156368aefe540bcc",
-        "version" : "0.0.6"
+        "revision" : "b5338452f9a2acf06dc11a90ebeaefb530ee3006",
+        "version" : "0.0.7"
       }
     }
   ],

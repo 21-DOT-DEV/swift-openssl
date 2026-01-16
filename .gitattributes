@@ -12,19 +12,42 @@
 Sources/libcrypto/**    linguist-vendored
 Sources/libssl/**       linguist-vendored
 
+# Custom placeholder files (not vendored)
+Sources/libcrypto/src/Placeholder.c         linguist-vendored=false
+Sources/libcrypto/include/Placeholder.h     linguist-vendored=false
+Sources/libssl/src/Placeholder.c            linguist-vendored=false
+Sources/libssl/include/Placeholder.h        linguist-vendored=false
+
 # Vendor/development directories
 Vendor/**                   export-ignore linguist-vendored
 .build/**                   export-ignore
+.build_custom/**            export-ignore
+.github/**                  export-ignore
+.vscode/**                  export-ignore
 .swiftpm/**                 export-ignore
+.specify/**                 export-ignore
 .windsurf/**                export-ignore
+specs/**                    export-ignore
 
 # CI/CD and tooling configs
+bitrise.yml                 export-ignore
+Dockerfile                  export-ignore
+lefthook.yml                export-ignore
 subtree.yaml                export-ignore
+.spi.yml                    export-ignore
+.swiftformat                export-ignore
+.swiftlint.yml              export-ignore
+
+# Development documentation
+libcrypto-build-mapping.md  export-ignore
 
 # Git and editor files
 .gitignore                  export-ignore
+.gitmodules                 export-ignore
 .DS_Store                   export-ignore
 
 # Package lockfile (not needed for library consumers)
 Package.resolved            export-ignore linguist-generated
 
+# Community files
+CODE_OF_CONDUCT.md          export-ignore
