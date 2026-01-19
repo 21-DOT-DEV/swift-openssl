@@ -1,0 +1,219 @@
+# Managed by subtree CLI - https://github.com/21-DOT-DEV/subtree
+subtrees:
+- name: openssl
+  remote: https://github.com/openssl/openssl
+  prefix: Vendor/openssl
+  commit: 2fd2a696c9dd4861f8c2e7a5b801287b1cb33c9f
+  branch: openssl-3.6.0
+  squash: true
+  extractions:
+  # libssl: SSL/TLS protocol implementation (matches Configure defaults)
+  - from:
+    - 'ssl/*.{c,h}'
+    - 'ssl/statem/*.{c,h}'
+    - 'ssl/record/*.{c,h}'
+    - 'ssl/record/methods/*.{c,h}'
+    - 'ssl/rio/*.{c,h}'
+    - 'ssl/quic/*.{c,h}'
+    to: Sources/libssl/src/
+    exclude:
+    - '**/*_test*'
+    - '**/test_*'
+    - '**/ktls_meth.c'       # Linux kernel TLS (requires no-ktls)
+    - '**/ssl_rsa_legacy.c'  # deprecated-3.0 only
+  # libcrypto - public headers (exposed in module)
+  - from:
+    - 'include/openssl/**/*.h'
+    to: Sources/libcrypto/
+    exclude:
+    - '**/*LOGUE.H'
+  # libcrypto - internal headers (NOT in module, accessed via headerSearchPath)
+  - from:
+    - 'include/internal/**/*.h'
+    - 'include/crypto/**/*.{h,def}'
+    to: Sources/libcrypto/internal_include/
+    exclude:
+    - '**/*LOGUE.H'
+  # Provider headers (needed by crypto sources)
+  - from:
+    - 'providers/common/include/**/*.h'
+    - 'providers/implementations/include/**/*.h'
+    - 'providers/fips/include/**/*.h'    # fipsindicator.h needed by securitycheck.h
+    to: Sources/libcrypto/providers/
+  # Provider sources - FULL set (per providers/build.info)
+  # Generated .c files from .c.in templates must be copied separately after make build_all_generated
+  - from:
+    - 'providers/*.c'                        # Provider init files (defltprov.c, baseprov.c, nullprov.c, prov_running.c)
+    - 'providers/*.inc'                      # encoders.inc, decoders.inc, stores.inc
+    - 'providers/common/**/*.c'              # Common provider utilities (libcommon.a)
+    - 'providers/common/**/*.h'              # Common provider local headers
+    - 'providers/implementations/**/*.c'     # All implementation sources
+    - 'providers/implementations/**/*.h'     # All implementation local headers
+    - 'providers/implementations/**/*.inc'   # Include files (ec_kmgmt_imexport.inc, etc.)
+    to: Sources/libcrypto/providers/
+    exclude:
+    # === FIPS provider (separate module, per build.info:101-128) ===
+    - '**/fips/**'
+    - '**/securitycheck_fips.c'  # Needs FIPS types
+    - '**/fips_crng_test.c'      # FIPS-only
+    # NOTE: cipher_aes_xts_fips.c is KEPT - needed for ossl_aes_xts_allow_insecure_decrypt
+    # === Legacy provider (per build.info:133-170) ===
+    - '**/legacyprov.c'
+    # === Test files ===
+    - '**/*_test*'
+    # NOTE: test_rng.c is KEPT - needed for ossl_test_rng_functions
+    # === Platform-specific (per providers/implementations/rands/seeding/build.info) ===
+    - '**/rand_vxworks.c'     # VxWorks only
+    - '**/rand_vms.c'         # VMS only
+    - '**/rand_win.c'         # Windows only
+    - '**/winstore_store.c'   # Windows only (storemgmt)
+    # === Files #included by other sources (not compiled separately) ===
+    - '**/blake2_mac_impl.c'  # #included by blake2b_mac.c and blake2s_mac.c
+    # === Disabled algorithms (per OPENSSL_NO_* defines in Package.swift) ===
+    # Post-quantum algorithms
+    - '**/lms_*'              # OPENSSL_NO_LMS
+    - '**/decode_lmsxdr2key.c' # LMS XDR decoder
+    - '**/ml_dsa_*'           # OPENSSL_NO_ML_DSA
+    - '**/ml_kem_*'           # OPENSSL_NO_ML_KEM
+    - '**/slh_dsa_*'          # OPENSSL_NO_SLH_DSA
+    - '**/mlx_*'              # ML-X hybrid
+    - '**/der_lms*'
+    - '**/der_ml_dsa*'
+    - '**/der_slh_dsa*'
+    # Chinese/Korean/Russian standards
+    - '**/sm2_*'              # OPENSSL_NO_SM2
+    - '**/sm3_*'              # OPENSSL_NO_SM3
+    - '**/sm4_*'              # OPENSSL_NO_SM4
+    - '**/cipher_sm4*'        # SM4 cipher implementations
+    - '**/der_sm2*'
+    - '**/aria_*'             # OPENSSL_NO_ARIA
+    - '**/cipher_aria*'       # ARIA cipher implementations
+    # Legacy ciphers (per crypto/*/build.info exclusions)
+    - '**/cipher_seed*'       # OPENSSL_NO_SEED
+    - '**/cipher_camellia*'   # OPENSSL_NO_CAMELLIA
+    - '**/cipher_cast5*'      # OPENSSL_NO_CAST
+    - '**/cipher_bf*'         # OPENSSL_NO_BF (Blowfish)
+    - '**/cipher_blowfish*'   # OPENSSL_NO_BF (Blowfish alternate name)
+    - '**/cipher_idea*'       # OPENSSL_NO_IDEA
+    - '**/cipher_rc2*'        # OPENSSL_NO_RC2
+    - '**/cipher_rc4*'        # OPENSSL_NO_RC4
+    - '**/cipher_rc5*'        # OPENSSL_NO_RC5
+    # Other disabled algorithms
+    - '**/blake2_prov.c'      # OPENSSL_NO_BLAKE2
+    - '**/blake2b_prov.c'
+    - '**/blake2s_prov.c'
+    - '**/blake2b_mac.c'      # BLAKE2 MAC (requires blake2_mac_impl.c)
+    - '**/blake2s_mac.c'
+    - '**/md2_prov.c'         # OPENSSL_NO_MD2
+    - '**/md4_prov.c'         # OPENSSL_NO_MD4
+    - '**/mdc2_prov.c'        # OPENSSL_NO_MDC2
+    - '**/wp_prov.c'          # OPENSSL_NO_WHIRLPOOL
+    - '**/rmd_prov.c'         # OPENSSL_NO_RMD160 (if disabled)
+    - '**/seed_src_jitter.c'  # Requires jitterentropy (optional)
+  # libcrypto: ALL crypto sources and local headers (per build.info mapping)
+  - from:
+    - 'crypto/**/*.c'
+    - 'crypto/**/*.h'
+    to: Sources/libcrypto/src/
+    exclude:
+    # === Assembly (no-asm build per various build.info files) ===
+    - '**/*.S'
+    - '**/*.s'
+    - '**/perlasm/**'
+    - '**/asm/**'           # All asm subdirectories (bn/asm, modes/asm, etc.)
+    # === Assembly/optimized duplicates ===
+    - '**/aes_x86core.c'
+    - '**/rsaz_exp*.c'
+    - '**/ecp_nistz*.c'
+    - '**/ecp_s390x*.c'
+    - '**/ecx_s390x.c'
+    - '**/ecp_sm2p256*.c'
+    - '**/bn_s390x.c'
+    - '**/bn_ppc.c'           # Per crypto/bn/build.info:81 - only for $BNASM_ppc32/64 (PPC asm)
+    - '**/bn_sparc.c'         # Per crypto/bn/build.info:44 - only for $BNASM_sparcv9 (SPARC asm)
+    - '**/hmac_s390x.c'
+    # === Arch-specific CPU capability detection (no-asm) ===
+    - '**/armcap.c'
+    - '**/ppccap.c'
+    - '**/sparcv9cap.c'
+    - '**/s390xcap.c'
+    - '**/riscvcap.c'
+    - '**/loongarchcap.c'
+    # === Platform-specific implementations ===
+    - '**/poly1305_ieee754.c'
+    - '**/poly1305_base2_44.c'
+    - '**/poly1305_ppc.c'
+    - '**/sha_ppc.c'
+    - '**/sha_riscv.c'
+    - '**/sm3_riscv.c'
+    - '**/chacha_ppc.c'
+    - '**/chacha_riscv.c'
+    - '**/ecp_ppc.c'
+    - '**/md5_riscv.c'
+    # === Platform-specific files ===
+    # LPdir_unix.c is #included by o_dir.c (line 28), keep it but exclude others
+    - '**/LPdir_win*.c'
+    - '**/LPdir_vms.c'
+    - '**/LPdir_wince.c'
+    - '**/LPdir_nyi.c'
+    - '**/dllmain.c'
+    - '**/uplink*.c'
+    - '**/rand_vxworks*'
+    - '**/rand_egd*'
+    # === Tests (per crypto/build.info - self_test_core.c is required, not a test file) ===
+    - '**/*_test.c'           # Test files (but NOT self_test_core.c which is required)
+    - '**/*_test.h'
+    - '**/test_*.c'
+    - '**/test_*.h'
+    - '**/bench*'
+    - '**/*acvp*'
+    # === Legacy/deprecated algorithms (disabled via OPENSSL_NO_*) ===
+    # Per build.info conditional logic: IF[{- !$disabled{xxx} -}]
+    # Algorithm directories
+    - '**/rc5/**'
+    - '**/rc2/**'
+    - '**/idea/**'
+    - '**/bf/**'
+    - '**/cast/**'
+    - '**/seed/**'
+    - '**/camellia/**'
+    - '**/mdc2/**'
+    - '**/whrlpool/**'
+    - '**/md2/**'
+    - '**/md4/**'
+    - '**/sm2/**'             # OPENSSL_NO_SM2
+    - '**/sm3/**'             # OPENSSL_NO_SM3
+    - '**/sm4/**'             # OPENSSL_NO_SM4
+    - '**/aria/**'            # OPENSSL_NO_ARIA
+    # EVP wrappers for disabled algorithms (per crypto/evp/build.info)
+    - '**/evp/legacy_md2.c'
+    - '**/evp/legacy_md4.c'
+    - '**/evp/legacy_mdc2.c'
+    - '**/evp/legacy_wp.c'
+    - '**/evp/e_seed.c'
+    - '**/evp/e_camellia.c'
+    - '**/evp/e_bf.c'
+    - '**/evp/e_idea.c'
+    - '**/evp/e_rc2.c'
+    - '**/evp/e_cast.c'
+    - '**/evp/e_rc5.c'
+    # === Additional algorithms disabled to simplify (per user choice) ===
+    - '**/blake2/**'          # OPENSSL_NO_BLAKE2
+    - '**/sm3/**'             # OPENSSL_NO_SM3
+    - '**/sm4/**'             # OPENSSL_NO_SM4
+    - '**/aria/**'            # OPENSSL_NO_ARIA
+    - '**/evp/legacy_blake2.c'
+    - '**/evp/e_sm4.c'
+    - '**/evp/e_aria.c'
+    # === Post-quantum algorithms (disabled per build.info) ===
+    - '**/lms/**'
+    - '**/ml_dsa/**'
+    - '**/ml_kem/**'
+    - '**/slh_dsa/**'
+    # === EC optimizations requiring ec_nistp_64_gcc_128 (per crypto/ec/build.info:84-86) ===
+    - '**/ecp_nistp224.c'
+    - '**/ecp_nistp256.c'
+    - '**/ecp_nistp384.c'
+    - '**/ecp_nistp521.c'
+    - '**/ecp_nistputil.c'
+  
