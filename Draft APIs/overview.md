@@ -20,6 +20,7 @@ This specification defines Swift APIs for RSA-PSS signature verification and Cer
 | [hkdf.md](hkdf.md) | HKDF key derivation (RFC 5869) | 2 |
 | [aead.md](aead.md) | AES-GCM and ChaCha20-Poly1305 AEAD ciphers | 3 |
 | [x509-chain.md](x509-chain.md) | X.509 chain verification, trust stores, policies | 4 |
+| [test-vectors](#test-vectors) | Public test vector sources for validation | — |
 
 ---
 
@@ -151,6 +152,76 @@ extension OpenSSLError: LocalizedError {
 
 ---
 
+## Test Vectors
+
+Public test vectors are available for validating API implementations against known-correct outputs and attack vectors.
+
+### Recommended: Wycheproof
+
+**[Project Wycheproof](https://github.com/C2SP/wycheproof)** is the recommended primary source for test vectors:
+
+- JSON format with schemas (easy to parse in Swift)
+- Covers all APIs: HMAC, HKDF, AES-GCM, ChaCha20-Poly1305, RSA-PSS
+- Includes attack vectors (invalid signatures, wrong tags, edge cases)
+- Used by pyca/cryptography, BoringSSL, and other major libraries
+
+```bash
+# Clone as submodule or vendor JSON files
+git clone https://github.com/C2SP/wycheproof.git
+# Test vectors in: wycheproof/testvectors_v1/
+```
+
+### Test Vector Sources by Algorithm
+
+| Algorithm | Primary Source | Additional Sources |
+|-----------|---------------|-------------------|
+| **HMAC** | Wycheproof `hmac_sha*.json` | [NIST CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program/message-authentication), [RFC 4231](https://www.rfc-editor.org/rfc/rfc4231) |
+| **HKDF** | [RFC 5869 Appendix A](https://www.rfc-editor.org/rfc/rfc5869.html) (7 test cases) | Wycheproof `hkdf_sha*.json` |
+| **AES-GCM** | Wycheproof `aes_gcm_test.json` | [NIST CAVP GCM](https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/mac/gcmtestvectors.zip) |
+| **ChaCha20-Poly1305** | [RFC 8439 Appendix A](https://www.rfc-editor.org/rfc/rfc8439.html) | Wycheproof `chacha20_poly1305_test.json` |
+| **RSA-PSS** | Wycheproof `rsa_pss_*.json` | [NIST CAVP RSA](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program) |
+| **X.509** | Wycheproof `x509_test.json` | — |
+| **CT (SCT)** | [CT Test Logs](https://certificate.transparency.dev/testlogs/) | [RFC 6962](https://www.rfc-editor.org/rfc/rfc6962) |
+
+### RFC 5869 HKDF Test Case 1 (SHA-256)
+
+```
+Hash = SHA-256
+IKM  = 0x0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b (22 octets)
+salt = 0x000102030405060708090a0b0c (13 octets)
+info = 0xf0f1f2f3f4f5f6f7f8f9 (10 octets)
+L    = 42
+
+PRK  = 0x077709362c2e32df0ddc3f0dc47bba63
+       90b6c73bb50f9c3122ec844ad7c2b3e5 (32 octets)
+OKM  = 0x3cb25f25faacd57a90434f64d0362f2a
+       2d2d0a90cf1a5a4c5db02d56ecc4c5bf
+       34007208d5b887185865 (42 octets)
+```
+
+### Suggested Test File Structure
+
+```
+Tests/OpenSSLTests/
+├── Resources/
+│   └── wycheproof/           # Vendored JSON test vectors
+│       ├── hmac_sha256_test.json
+│       ├── hmac_sha384_test.json
+│       ├── hmac_sha512_test.json
+│       ├── hkdf_sha256_test.json
+│       ├── aes_gcm_test.json
+│       ├── chacha20_poly1305_test.json
+│       └── rsa_pss_*.json
+├── HMACTests.swift
+├── HKDFTests.swift
+├── AESGCMTests.swift
+├── ChaChaPolyTests.swift
+├── RSAPSSTests.swift
+└── WycheproofTestHelper.swift  # JSON parsing utilities
+```
+
+---
+
 ## File Structure
 
 ```
@@ -214,3 +285,4 @@ Sources/OpenSSL/
 | 0.1.0-draft | 2026-01-19 | Initial API design |
 | 0.1.0-draft | 2026-01-19 | Refactored into multi-file structure |
 | 0.1.0-draft | 2026-01-19 | Added HMAC, HKDF, AEAD, X.509 chain specs |
+| 0.1.0-draft | 2026-01-19 | Added test vectors section (Wycheproof, NIST CAVP, RFCs) |
