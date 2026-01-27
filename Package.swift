@@ -46,6 +46,8 @@ let package = Package(
                 .define("OPENSSLDIR", to: "\"/usr/local/ssl\""),
                 .define("ENGINESDIR", to: "\"/usr/local/lib/engines\""),
                 .define("MODULESDIR", to: "\"/usr/local/lib/ossl-modules\""),
+                // Linux: Enable GNU extensions for pthread_rwlock_t and full POSIX support
+                .define("_GNU_SOURCE", .when(platforms: [.linux])),
                 // Note: Algorithm disables (OPENSSL_NO_*) are in configuration.h via ./Configure options
                 // See README.md "Regenerating Configure-Generated Files" for the full list
              ]
@@ -60,6 +62,8 @@ let package = Package(
                 // Build configuration (matches: ./Configure darwin64-arm64-cc no-asm no-shared)
                 .define("OPENSSL_NO_ASM"),
                 .define("OPENSSL_PIC"),
+                // Linux: Enable GNU extensions for pthread_rwlock_t and full POSIX support
+                .define("_GNU_SOURCE", .when(platforms: [.linux])),
              ]
          ),
 

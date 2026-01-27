@@ -27,9 +27,19 @@ extern "C" {
  * OpenSSL was configured with the following options:
  */
 
+/* Platform detection */
+#if defined(__APPLE__)
 # ifndef OPENSSL_SYS_MACOSX
 #  define OPENSSL_SYS_MACOSX 1
 # endif
+#elif defined(__linux__)
+# ifndef OPENSSL_SYS_LINUX
+#  define OPENSSL_SYS_LINUX 1
+# endif
+# ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+# endif
+#endif
 # define OPENSSL_CONFIGURED_API 30600
 # ifndef OPENSSL_RAND_SEED_OS
 #  define OPENSSL_RAND_SEED_OS
