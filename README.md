@@ -1,24 +1,30 @@
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 # 🗝️ swift-openssl
 
-Swift package providing OpenSSL cryptographic functionality with C bindings from [OpenSSL](https://github.com/openssl/openssl).
+Swift package providing OpenSSL cryptographic functionality with modern Swift APIs. Uses Swift's C interoperability with [OpenSSL](https://github.com/openssl/openssl).
 
-## Objectives
+## Contents
 
-- Provide modern Swift bindings for OpenSSL
-- Offer Swift Crypto-compatible API design
+- [Features](#features)
+- [Installation](#installation)
+- [Usage Examples](#usage-examples)
+- [Development](#development)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+
+- Provide modern Swift bindings for OpenSSL cryptographic operations
+- Offer a familiar API design inspired by [Swift Crypto](https://github.com/apple/swift-crypto)
 - Expose libcrypto and libssl bindings for full control of the implementation
 - Ensure availability for Linux and Apple platform ecosystems
 - Maintain automatic updates for Swift and OpenSSL versions
 
-## Requirements
-
-- Swift 6.0+
-- macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+
-
 ## Installation
 
-> [!WARNING]
-> These APIs are not considered stable and may change with any update. Specify a version using `exact:` to avoid breaking changes.
+This package uses Swift Package Manager. To add it to your project:
 
 ### Using Xcode
 
@@ -26,33 +32,42 @@ Swift package providing OpenSSL cryptographic functionality with C bindings from
 2. Enter the package URL: `https://github.com/21-DOT-DEV/swift-openssl`
 3. Select the desired version
 
-### Using Package.swift
+### Using Package.swift (Recommended)
 
-Add to your `Package.swift`:
+Add the following to your `Package.swift` file:
 
 ```swift
-dependencies: [
-    .package(url: "https://github.com/21-DOT-DEV/swift-openssl.git", from: "0.1.0")
-]
+.package(url: "https://github.com/21-DOT-DEV/swift-openssl.git", from: "0.1.0"),
 ```
 
-## Usage
+> [!WARNING]
+> This package is pre-1.0 ([SemVer major version zero](https://semver.org/#spec-item-4)). The public API should not be considered stable and may change with any release. Pin a version using `exact:` to avoid unexpected breaking changes.
+
+Then, include `OpenSSL` as a dependency in your target:
+
+```swift
+.target(name: "<target>", dependencies: [
+    .product(name: "OpenSSL", package: "swift-openssl")
+]),
+```
+
+## Usage Examples
 
 > [!CAUTION]
 > This package has not yet implemented cryptographic test vectors. Do not use in production until proper verification is in place.
 
-### SHA256 Hashing
+### SHA-256 Hashing
 
 ```swift
 import OpenSSL
 
 // Hash data
 let data = "Hello, World!".data(using: .utf8)!
-let digest = OpenSSL.SHA.sha256(data: data)
+let digest = SHA256.hash(data: data)
 print(digest.hexString)
 
 // Hash string directly
-let stringDigest = OpenSSL.SHA.sha256(string: "Hello, World!")
+let stringDigest = SHA256.hash(string: "Hello, World!")
 print(stringDigest.hexString)
 ```
 
@@ -63,11 +78,11 @@ import OpenSSL
 
 // Encode data as base64url (useful for JWT)
 let data = "Hello, World!".data(using: .utf8)!
-let encoded = OpenSSL.Base64URL.encode(data)
+let encoded = Base64URL.encode(data)
 print(encoded)
 
 // Decode base64url string
-if let decoded = OpenSSL.Base64URL.decode(encoded) {
+if let decoded = Base64URL.decode(encoded) {
     print(String(data: decoded, encoding: .utf8)!)
 }
 ```
@@ -84,11 +99,12 @@ let privateKeyPEM = """
 """
 
 // Parse PEM-encoded keys
-let privateKey = try OpenSSL.RSA.PrivateKey(pemRepresentation: privateKeyPEM)
+let privateKey = try RSA.PrivateKey(pemRepresentation: privateKeyPEM)
 print(privateKey.pemData)
 ```
 
-> **Note:** RSA signing and verification require the OpenSSL provider layer, which is not yet included. Key parsing is functional.
+> [!NOTE]
+> RSA signing and verification require the OpenSSL provider layer, which is not yet included. Key parsing is functional.
 
 ### OpenSSL Version
 
@@ -96,10 +112,15 @@ print(privateKey.pemData)
 import OpenSSL
 
 // Get the OpenSSL version string
-print(OpenSSL.SSL.versionString)
+print(SSL.versionString)
 ```
 
 ## Development
+
+### Requirements
+
+- Swift 6.0+
+- macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+
 
 ### Updating OpenSSL Version
 
@@ -181,8 +202,16 @@ Sources/
     └── include/       # SSL headers
 ```
 
+## Security
+
+For information on reporting security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started. For AI-assisted development guidance, see [AGENTS.md](AGENTS.md).
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 OpenSSL is licensed under the Apache License 2.0.

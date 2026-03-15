@@ -28,7 +28,6 @@ Vendor/**                   export-ignore linguist-vendored
 .specify/**                 export-ignore
 .windsurf/**                export-ignore
 specs/**                    export-ignore
-Draft\ APIs/**              export-ignore
 
 # CI/CD and tooling configs
 bitrise.yml                 export-ignore

@@ -2,7 +2,7 @@
 //  OpenSSL.swift
 //  21-DOT-DEV/swift-openssl
 //
-//  Copyright (c) 2025 21-DOT-DEV
+//  Copyright (c) 2026 Timechain Software Initiative, Inc.
 //  Distributed under the MIT software license
 //
 //  See the accompanying file LICENSE for information
@@ -12,22 +12,22 @@ import Foundation
 import libcrypto
 import libssl
 
-/// OpenSSL namespace for cryptographic operations.
-public enum OpenSSL {
-    /// RSA cryptographic operations.
-    public enum RSA {}
-    
-    /// SHA hash functions.
-    public enum SHA {}
-    
-    /// SSL/TLS operations.
-    public enum SSL {
-        /// Returns the OpenSSL version string.
-        public static var versionString: String {
-            String(cString: OpenSSL_version(OPENSSL_VERSION))
-        }
+/// RSA cryptographic operations.
+public enum RSA {}
+
+/// The SHA-256 hashing algorithm.
+public enum SHA256 {}
+
+/// SSL/TLS operations.
+public enum SSL {
+    /// Returns the OpenSSL version string.
+    public static var versionString: String {
+        String(cString: OpenSSL_version(OPENSSL_VERSION))
     }
 }
+
+/// Utilities for Base64URL encoding (used in JWT).
+public enum Base64URL {}
 
 /// Errors that can occur during OpenSSL operations.
 public enum OpenSSLError: Error, Equatable, Sendable {

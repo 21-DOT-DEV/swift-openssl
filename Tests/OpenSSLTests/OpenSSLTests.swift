@@ -2,7 +2,7 @@
 //  OpenSSLTests.swift
 //  21-DOT-DEV/swift-openssl
 //
-//  Copyright (c) 2025 21-DOT-DEV
+//  Copyright (c) 2026 Timechain Software Initiative, Inc.
 //  Distributed under the MIT software license
 //
 //  See the accompanying file LICENSE for information
@@ -16,7 +16,7 @@ final class OpenSSLTests: XCTestCase {
     // MARK: - SHA256 Tests
 
     func testSHA256EmptyString() {
-        let digest = OpenSSL.SHA.sha256(string: "")
+        let digest = SHA256.hash(string: "")
         // SHA256 of empty string: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         XCTAssertEqual(
             digest.hexString,
@@ -25,7 +25,7 @@ final class OpenSSLTests: XCTestCase {
     }
     
     func testSHA256HelloWorld() {
-        let digest = OpenSSL.SHA.sha256(string: "Hello, World!")
+        let digest = SHA256.hash(string: "Hello, World!")
         // Known SHA256 hash of "Hello, World!"
         XCTAssertEqual(
             digest.hexString,
@@ -35,7 +35,7 @@ final class OpenSSLTests: XCTestCase {
     
     func testSHA256Data() {
         let data = Data([0x48, 0x65, 0x6c, 0x6c, 0x6f]) // "Hello" in ASCII
-        let digest = OpenSSL.SHA.sha256(data: data)
+        let digest = SHA256.hash(data: data)
         // SHA256 of "Hello": 185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
         XCTAssertEqual(
             digest.hexString,
@@ -44,9 +44,9 @@ final class OpenSSLTests: XCTestCase {
     }
     
     func testSHA256DigestEquality() {
-        let digest1 = OpenSSL.SHA.sha256(string: "test")
-        let digest2 = OpenSSL.SHA.sha256(string: "test")
-        let digest3 = OpenSSL.SHA.sha256(string: "different")
+        let digest1 = SHA256.hash(string: "test")
+        let digest2 = SHA256.hash(string: "test")
+        let digest3 = SHA256.hash(string: "different")
         
         XCTAssertEqual(digest1, digest2)
         XCTAssertNotEqual(digest1, digest3)
@@ -56,7 +56,7 @@ final class OpenSSLTests: XCTestCase {
     
     func testBase64URLEncode() {
         let data = Data("Hello, World!".utf8)
-        let encoded = OpenSSL.Base64URL.encode(data)
+        let encoded = Base64URL.encode(data)
         XCTAssertEqual(encoded, "SGVsbG8sIFdvcmxkIQ")
         XCTAssertFalse(encoded.contains("+"))
         XCTAssertFalse(encoded.contains("/"))
@@ -65,22 +65,22 @@ final class OpenSSLTests: XCTestCase {
     
     func testBase64URLDecode() {
         let encoded = "SGVsbG8sIFdvcmxkIQ"
-        let decoded = OpenSSL.Base64URL.decode(encoded)
+        let decoded = Base64URL.decode(encoded)
         XCTAssertNotNil(decoded)
         XCTAssertEqual(String(data: decoded!, encoding: .utf8), "Hello, World!")
     }
     
     func testBase64URLRoundTrip() {
         let original = Data("Test data for round trip!".utf8)
-        let encoded = OpenSSL.Base64URL.encode(original)
-        let decoded = OpenSSL.Base64URL.decode(encoded)
+        let encoded = Base64URL.encode(original)
+        let decoded = Base64URL.decode(encoded)
         XCTAssertEqual(decoded, original)
     }
     
     // MARK: - RSA Key Tests
     
     func testRSAPrivateKeyInvalidPEM() {
-        XCTAssertThrowsError(try OpenSSL.RSA.PrivateKey(pemRepresentation: "not a valid PEM")) { error in
+        XCTAssertThrowsError(try RSA.PrivateKey(pemRepresentation: "not a valid PEM")) { error in
             guard case OpenSSLError.invalidKey = error else {
                 XCTFail("Expected invalidKey error")
                 return
@@ -89,7 +89,7 @@ final class OpenSSLTests: XCTestCase {
     }
     
     func testRSAPublicKeyInvalidPEM() {
-        XCTAssertThrowsError(try OpenSSL.RSA.PublicKey(pemRepresentation: "not a valid PEM")) { error in
+        XCTAssertThrowsError(try RSA.PublicKey(pemRepresentation: "not a valid PEM")) { error in
             guard case OpenSSLError.invalidKey = error else {
                 XCTFail("Expected invalidKey error")
                 return
@@ -108,7 +108,7 @@ final class OpenSSLTests: XCTestCase {
         """
         
         // Should not throw - format is valid even if key content is truncated
-        let privateKey = try OpenSSL.RSA.PrivateKey(pemRepresentation: validPEMFormat)
+        let privateKey = try RSA.PrivateKey(pemRepresentation: validPEMFormat)
         XCTAssertFalse(privateKey.pemData.isEmpty)
     }
     
@@ -121,7 +121,7 @@ final class OpenSSLTests: XCTestCase {
         """
         
         // Should not throw - format is valid
-        let publicKey = try OpenSSL.RSA.PublicKey(pemRepresentation: validPEMFormat)
+        let publicKey = try RSA.PublicKey(pemRepresentation: validPEMFormat)
         XCTAssertFalse(publicKey.pemData.isEmpty)
     }
 }

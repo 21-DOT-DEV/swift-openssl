@@ -2,7 +2,7 @@
 //  RSA.swift
 //  21-DOT-DEV/swift-openssl
 //
-//  Copyright (c) 2025 21-DOT-DEV
+//  Copyright (c) 2026 Timechain Software Initiative, Inc.
 //  Distributed under the MIT software license
 //
 //  See the accompanying file LICENSE for information
@@ -13,7 +13,7 @@ import libcrypto
 
 // MARK: - RSA Private Key
 
-extension OpenSSL.RSA {
+extension RSA {
     /// An RSA private key for signing operations.
     /// 
     /// Note: RSA signing requires the full OpenSSL provider layer which is not yet
@@ -46,7 +46,7 @@ extension OpenSSL.RSA {
 
 // MARK: - RSA Public Key
 
-extension OpenSSL.RSA {
+extension RSA {
     /// An RSA public key for verification operations.
     ///
     /// Note: RSA verification requires the full OpenSSL provider layer which is not yet
