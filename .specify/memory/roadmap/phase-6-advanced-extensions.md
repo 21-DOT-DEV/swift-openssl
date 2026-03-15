@@ -18,7 +18,7 @@ Extend the verification and cryptographic API surface with advanced capabilities
   - Proof fetching from CT log HTTP endpoints (optional — may be caller responsibility)
   - Integration with existing `CT.SCTReport` for combined reporting
 - **Dependencies**: Phase 3 (CT verification API)
-- **Notes**: See `Draft APIs/overview.md` → Future Extensions
+- **Note**: Extends Phase 3 CT API with Merkle tree verification for stronger assurance beyond signature-only checks
 
 ### RSA-PSS Signing
 
@@ -29,7 +29,7 @@ Extend the verification and cryptographic API surface with advanced capabilities
   - Round-trip test: sign → verify with existing `PublicKey.isValidSignature`
   - Key generation API (optional)
 - **Dependencies**: Phase 3 (RSA-PSS verification)
-- **Notes**: See `Draft APIs/overview.md` → Future Extensions
+- **Note**: Completes the RSA-PSS API — Phase 3 provides `RSA.PSS.PublicKey` (verify), this adds `RSA.PSS.PrivateKey` (sign)
 
 ### OCSP Response Handling
 
