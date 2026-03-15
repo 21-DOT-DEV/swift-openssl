@@ -42,10 +42,11 @@ let package = Package(
                 .headerSearchPath("providers/providers/common/include"), // For "prov/xxx.h" provider headers
                 .headerSearchPath("providers/providers/implementations/include"), // For provider implementation headers
                 .headerSearchPath("providers/providers/fips/include"), // For "fips/fipsindicator.h"
-                // SPM-specific path overrides (runtime paths for config/engines/modules)
-                .define("OPENSSLDIR", to: "\"/usr/local/ssl\""),
-                .define("ENGINESDIR", to: "\"/usr/local/lib/engines\""),
-                .define("MODULESDIR", to: "\"/usr/local/lib/ossl-modules\""),
+                // Required: Runtime fallback paths (used by x509_def.c, eng_list.c, provider_core.c)
+                // These paths are returned by ossl_get_*dir() functions as defaults
+                .define("OPENSSLDIR", to: "\"/usr/local/ssl\""),      // X509 cert paths
+                .define("ENGINESDIR", to: "\"/usr/local/lib/engines\""),  // Engine loading
+                .define("MODULESDIR", to: "\"/usr/local/lib/ossl-modules\""),  // Provider loading
                 // Linux: Enable GNU extensions for pthread_rwlock_t and full POSIX support
                 .define("_GNU_SOURCE", .when(platforms: [.linux])),
                 // Note: Algorithm disables (OPENSSL_NO_*) are in configuration.h via ./Configure options

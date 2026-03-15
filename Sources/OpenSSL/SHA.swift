@@ -2,7 +2,7 @@
 //  SHA.swift
 //  21-DOT-DEV/swift-openssl
 //
-//  Copyright (c) 2025 21-DOT-DEV
+//  Copyright (c) 2026 Timechain Software Initiative, Inc.
 //  Distributed under the MIT software license
 //
 //  See the accompanying file LICENSE for information
@@ -13,7 +13,7 @@ import libcrypto
 
 // MARK: - SHA256 Digest
 
-extension OpenSSL.SHA {
+extension SHA256 {
     /// A SHA256 digest result.
     public struct SHA256Digest: Sendable, Equatable {
         /// The raw digest bytes (32 bytes).
@@ -39,10 +39,10 @@ extension OpenSSL.SHA {
         }
     }
     
-    /// Computes the SHA256 hash of the given data.
+    /// Computes a digest of the data.
     /// - Parameter data: The data to hash.
-    /// - Returns: The SHA256 digest.
-    public static func sha256(data: Data) -> SHA256Digest {
+    /// - Returns: The computed digest.
+    public static func hash(data: Data) -> SHA256Digest {
         var digestBytes = [UInt8](repeating: 0, count: 32)
         var ctx = SHA256_CTX()
         
@@ -60,42 +60,39 @@ extension OpenSSL.SHA {
         return SHA256Digest(unchecked: Data(digestBytes))
     }
     
-    /// Computes the SHA256 hash of the given string.
+    /// Computes a digest of the string.
     /// - Parameter string: The string to hash (UTF-8 encoded).
-    /// - Returns: The SHA256 digest.
-    public static func sha256(string: String) -> SHA256Digest {
-        sha256(data: Data(string.utf8))
+    /// - Returns: The computed digest.
+    public static func hash(string: String) -> SHA256Digest {
+        hash(data: Data(string.utf8))
     }
 }
 
 // MARK: - Base64URL Encoding
 
-extension OpenSSL {
-    /// Utilities for Base64URL encoding (used in JWT).
-    public enum Base64URL {
-        /// Encodes data as base64url (URL-safe base64 without padding).
-        /// - Parameter data: The data to encode.
-        /// - Returns: The base64url-encoded string.
-        public static func encode(_ data: Data) -> String {
-            data.base64EncodedString()
-                .replacingOccurrences(of: "+", with: "-")
-                .replacingOccurrences(of: "/", with: "_")
-                .replacingOccurrences(of: "=", with: "")
-        }
+extension Base64URL {
+    /// Encodes data as base64url (URL-safe base64 without padding).
+    /// - Parameter data: The data to encode.
+    /// - Returns: The base64url-encoded string.
+    public static func encode(_ data: Data) -> String {
+        data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
+    
+    /// Decodes a base64url string to data.
+    /// - Parameter string: The base64url-encoded string.
+    /// - Returns: The decoded data, or nil if decoding fails.
+    public static func decode(_ string: String) -> Data? {
+        var base64 = string
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
         
-        /// Decodes a base64url string to data.
-        /// - Parameter string: The base64url-encoded string.
-        /// - Returns: The decoded data, or nil if decoding fails.
-        public static func decode(_ string: String) -> Data? {
-            var base64 = string
-                .replacingOccurrences(of: "-", with: "+")
-                .replacingOccurrences(of: "_", with: "/")
-            
-            // Add padding if needed
-            let paddingLength = (4 - base64.count % 4) % 4
-            base64 += String(repeating: "=", count: paddingLength)
-            
-            return Data(base64Encoded: base64)
-        }
+        // Add padding if needed
+        let paddingLength = (4 - base64.count % 4) % 4
+        base64 += String(repeating: "=", count: paddingLength)
+        
+        return Data(base64Encoded: base64)
     }
 }
