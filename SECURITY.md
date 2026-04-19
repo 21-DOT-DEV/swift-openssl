@@ -30,3 +30,4 @@ This package wraps [OpenSSL](https://github.com/openssl/openssl) via Swift's C i
 Vulnerabilities in the underlying C library should be reported directly to the OpenSSL project:
 
 - **OpenSSL**: See [openssl/openssl SECURITY.md](https://github.com/openssl/openssl/blob/master/SECURITY.md)
+

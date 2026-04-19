@@ -18,6 +18,11 @@ Sources/libcrypto/include/Placeholder.h     linguist-vendored=false
 Sources/libssl/src/Placeholder.c            linguist-vendored=false
 Sources/libssl/include/Placeholder.h        linguist-vendored=false
 
+# Configure-generated headers (not in upstream; produced by ./Configure + make build_all_generated)
+Sources/libcrypto/include/openssl/configuration.h               linguist-generated
+Sources/libcrypto/internal_include/crypto/buildinf.h            linguist-generated
+Sources/libcrypto/providers/providers/fips/include/fips/fipsindicator.h linguist-generated
+
 # Vendor/development directories
 Vendor/**                   export-ignore linguist-vendored
 .build/**                   export-ignore linguist-vendored
@@ -30,25 +35,16 @@ Vendor/**                   export-ignore linguist-vendored
 specs/**                    export-ignore linguist-vendored
 
 # CI/CD and tooling configs
-bitrise.yml                 export-ignore
 Dockerfile                  export-ignore
 .dockerignore               export-ignore
-lefthook.yml                export-ignore
 subtree.yaml                export-ignore
-.spi.yml                    export-ignore
-.swiftformat                export-ignore
-.swiftlint.yml              export-ignore
 
 # Development documentation
 libcrypto-build-mapping.md  export-ignore
 
 # Git and editor files
 .gitignore                  export-ignore
-.gitmodules                 export-ignore
 .DS_Store                   export-ignore
 
 # Package lockfile (not needed for library consumers)
 Package.resolved            export-ignore linguist-generated
-
-# Community files
-CODE_OF_CONDUCT.md          export-ignore

@@ -8,120 +8,125 @@
 //  See the accompanying file LICENSE for information
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenSSL
 
-final class OpenSSLTests: XCTestCase {
-    
+@Suite("OpenSSL")
+struct OpenSSLTests {
+
     // MARK: - SHA256 Tests
 
-    func testSHA256EmptyString() {
+    @Test("SHA256 of empty string matches RFC vector")
+    func sha256EmptyString() {
         let digest = SHA256.hash(string: "")
         // SHA256 of empty string: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-        XCTAssertEqual(
-            digest.hexString,
-            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        )
+        #expect(digest.hexString == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
     }
-    
-    func testSHA256HelloWorld() {
+
+    @Test("SHA256 of \"Hello, World!\"")
+    func sha256HelloWorld() {
         let digest = SHA256.hash(string: "Hello, World!")
-        // Known SHA256 hash of "Hello, World!"
-        XCTAssertEqual(
-            digest.hexString,
-            "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
-        )
+        #expect(digest.hexString == "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f")
     }
-    
-    func testSHA256Data() {
+
+    @Test("SHA256 over Data")
+    func sha256Data() {
         let data = Data([0x48, 0x65, 0x6c, 0x6c, 0x6f]) // "Hello" in ASCII
         let digest = SHA256.hash(data: data)
         // SHA256 of "Hello": 185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
-        XCTAssertEqual(
-            digest.hexString,
-            "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"
-        )
+        #expect(digest.hexString == "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969")
     }
-    
-    func testSHA256DigestEquality() {
+
+    @Test("SHA256 digest equality")
+    func sha256DigestEquality() {
         let digest1 = SHA256.hash(string: "test")
         let digest2 = SHA256.hash(string: "test")
         let digest3 = SHA256.hash(string: "different")
-        
-        XCTAssertEqual(digest1, digest2)
-        XCTAssertNotEqual(digest1, digest3)
+
+        #expect(digest1 == digest2)
+        #expect(digest1 != digest3)
     }
-    
+
     // MARK: - Base64URL Tests
-    
-    func testBase64URLEncode() {
+
+    @Test("Base64URL encoding is URL-safe and unpadded")
+    func base64URLEncode() {
         let data = Data("Hello, World!".utf8)
         let encoded = Base64URL.encode(data)
-        XCTAssertEqual(encoded, "SGVsbG8sIFdvcmxkIQ")
-        XCTAssertFalse(encoded.contains("+"))
-        XCTAssertFalse(encoded.contains("/"))
-        XCTAssertFalse(encoded.contains("="))
+        #expect(encoded == "SGVsbG8sIFdvcmxkIQ")
+        #expect(!encoded.contains("+"))
+        #expect(!encoded.contains("/"))
+        #expect(!encoded.contains("="))
     }
-    
-    func testBase64URLDecode() {
+
+    @Test("Base64URL decoding recovers original bytes")
+    func base64URLDecode() {
         let encoded = "SGVsbG8sIFdvcmxkIQ"
         let decoded = Base64URL.decode(encoded)
-        XCTAssertNotNil(decoded)
-        XCTAssertEqual(String(data: decoded!, encoding: .utf8), "Hello, World!")
+        #expect(decoded != nil)
+        #expect(String(data: decoded!, encoding: .utf8) == "Hello, World!")
     }
-    
-    func testBase64URLRoundTrip() {
+
+    @Test("Base64URL encode/decode round-trip")
+    func base64URLRoundTrip() {
         let original = Data("Test data for round trip!".utf8)
         let encoded = Base64URL.encode(original)
         let decoded = Base64URL.decode(encoded)
-        XCTAssertEqual(decoded, original)
+        #expect(decoded == original)
     }
-    
+
     // MARK: - RSA Key Tests
-    
-    func testRSAPrivateKeyInvalidPEM() {
-        XCTAssertThrowsError(try RSA.PrivateKey(pemRepresentation: "not a valid PEM")) { error in
-            guard case OpenSSLError.invalidKey = error else {
-                XCTFail("Expected invalidKey error")
-                return
-            }
+
+    @Test("RSA private key rejects invalid PEM")
+    func rsaPrivateKeyInvalidPEM() throws {
+        let error = try #require(throws: OpenSSLError.self) {
+            _ = try RSA.PrivateKey(pemRepresentation: "not a valid PEM")
+        }
+        guard case .invalidKey = error else {
+            Issue.record("Expected OpenSSLError.invalidKey, got \(error)")
+            return
         }
     }
-    
-    func testRSAPublicKeyInvalidPEM() {
-        XCTAssertThrowsError(try RSA.PublicKey(pemRepresentation: "not a valid PEM")) { error in
-            guard case OpenSSLError.invalidKey = error else {
-                XCTFail("Expected invalidKey error")
-                return
-            }
+
+    @Test("RSA public key rejects invalid PEM")
+    func rsaPublicKeyInvalidPEM() throws {
+        let error = try #require(throws: OpenSSLError.self) {
+            _ = try RSA.PublicKey(pemRepresentation: "not a valid PEM")
+        }
+        guard case .invalidKey = error else {
+            Issue.record("Expected OpenSSLError.invalidKey, got \(error)")
+            return
         }
     }
-    
+
     // MARK: - RSA Key Parsing Tests
-    
-    func testRSAPrivateKeyParsing() throws {
+
+    @Test("RSA private key accepts valid PEM format")
+    func rsaPrivateKeyParsing() throws {
         // Test RSA private key format validation
         let validPEMFormat = """
         -----BEGIN RSA PRIVATE KEY-----
         MIIBogIBAAJBALRiMLAHudeSA2ai7Gv5e5r
         -----END RSA PRIVATE KEY-----
         """
-        
+
         // Should not throw - format is valid even if key content is truncated
         let privateKey = try RSA.PrivateKey(pemRepresentation: validPEMFormat)
-        XCTAssertFalse(privateKey.pemData.isEmpty)
+        #expect(!privateKey.pemData.isEmpty)
     }
-    
-    func testRSAPublicKeyParsing() throws {
+
+    @Test("RSA public key accepts valid PEM format")
+    func rsaPublicKeyParsing() throws {
         // Test RSA public key format validation
         let validPEMFormat = """
         -----BEGIN PUBLIC KEY-----
         MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
         -----END PUBLIC KEY-----
         """
-        
+
         // Should not throw - format is valid
         let publicKey = try RSA.PublicKey(pemRepresentation: validPEMFormat)
-        XCTAssertFalse(publicKey.pemData.isEmpty)
+        #expect(!publicKey.pemData.isEmpty)
     }
 }
