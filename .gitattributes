@@ -1,54 +1,19 @@
-# Auto-detect text files and normalize line endings
-* text=auto
+*.bin binary
+*.der binary
+/fuzz/corpora/** binary
+*.pfx binary
+test/recipes/15-test_ml_dsa_codecs_data/*.dat   binary
+test/recipes/15-test_ml_kem_codecs_data/*.dat binary
 
-# Swift files
-*.swift text diff=swift
-
-# C files (upstream library code)
-*.c text diff=c
-*.h text diff=c
-
-# Upstream C library in Sources should be marked as vendored
-Sources/libcrypto/**    linguist-vendored
-Sources/libssl/**       linguist-vendored
-
-# Custom placeholder files (not vendored)
-Sources/libcrypto/src/Placeholder.c         linguist-vendored=false
-Sources/libcrypto/include/Placeholder.h     linguist-vendored=false
-Sources/libssl/src/Placeholder.c            linguist-vendored=false
-Sources/libssl/include/Placeholder.h        linguist-vendored=false
-
-# Vendor/development directories
-Vendor/**                   export-ignore linguist-vendored
-.build/**                   export-ignore linguist-vendored
-.build_custom/**            export-ignore linguist-vendored
-.github/**                  export-ignore linguist-vendored
-.vscode/**                  export-ignore linguist-vendored
-.swiftpm/**                 export-ignore linguist-vendored
-.specify/**                 export-ignore linguist-vendored
-.windsurf/**                export-ignore linguist-vendored
-specs/**                    export-ignore linguist-vendored
-
-# CI/CD and tooling configs
-bitrise.yml                 export-ignore
-Dockerfile                  export-ignore
-.dockerignore               export-ignore
-lefthook.yml                export-ignore
-subtree.yaml                export-ignore
-.spi.yml                    export-ignore
-.swiftformat                export-ignore
-.swiftlint.yml              export-ignore
-
-# Development documentation
-libcrypto-build-mapping.md  export-ignore
-
-# Git and editor files
-.gitignore                  export-ignore
-.gitmodules                 export-ignore
-.DS_Store                   export-ignore
-
-# Package lockfile (not needed for library consumers)
-Package.resolved            export-ignore linguist-generated
-
-# Community files
-CODE_OF_CONDUCT.md          export-ignore
+# For git archive
+fuzz/corpora/**                         export-ignore
+Configurations/*.norelease.conf         export-ignore
+# We generally avoid anything with a name starting with a period.
+# However, .ctags.d is precious, so we don't ignore that.
+.*                                      export-ignore
+.ctags.d                                !export-ignore
+util/mktar.sh                           export-ignore
+krb5                                    export-ignore
+pyca-cryptography                       export-ignore
+dev                                     export-ignore
+gost-engine                             export-ignore

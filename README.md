@@ -1,217 +1,263 @@
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+Welcome to the OpenSSL Project
+==============================
 
-# 🗝️ swift-openssl
+[![openssl logo]][www.openssl.org]
 
-Swift package providing OpenSSL cryptographic functionality with modern Swift APIs. Uses Swift's C interoperability with [OpenSSL](https://github.com/openssl/openssl).
+[![github actions ci badge]][github actions ci]
+[![Nightly OS Zoo ci badge](https://github.com/openssl/openssl/actions/workflows/os-zoo.yml/badge.svg)](https://github.com/openssl/openssl/actions/workflows/os-zoo.yml)
+[![Provider Compatibility](https://github.com/openssl/openssl/actions/workflows/provider-compatibility.yml/badge.svg)](https://github.com/openssl/openssl/actions/workflows/provider-compatibility.yml)
+[![Quic Interop](https://github.com/openssl/openssl/actions/workflows/run_quic_interop.yml/badge.svg)](https://github.com/openssl/openssl/actions/workflows/run_quic_interop.yml)
+[![Daily checks](https://github.com/openssl/openssl/actions/workflows/run-checker-daily.yml/badge.svg)](https://github.com/openssl/openssl/actions/workflows/run-checker-daily.yml)
 
-## Contents
+OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit
+for the TLS (formerly SSL), DTLS and QUIC protocols.
 
-- [Features](#features)
-- [Installation](#installation)
-- [Usage Examples](#usage-examples)
-- [Development](#development)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
+The protocol implementations are based on a full-strength general purpose
+cryptographic library, which can also be used stand-alone. Also included is a
+cryptographic module validated to conform with FIPS standards.
 
-## Features
+OpenSSL is descended from the SSLeay library developed by Eric A. Young
+and Tim J. Hudson.
 
-- Provide modern Swift bindings for OpenSSL cryptographic operations
-- Offer a familiar API design inspired by [Swift Crypto](https://github.com/apple/swift-crypto)
-- Expose libcrypto and libssl bindings for full control of the implementation
-- Ensure availability for Linux and Apple platform ecosystems
-- Maintain automatic updates for Swift and OpenSSL versions
+The official Home Page of the OpenSSL Project is [www.openssl.org].
 
-## Installation
+Table of Contents
+=================
 
-This package uses Swift Package Manager. To add it to your project:
+ - [Overview](#overview)
+ - [Download](#download)
+ - [Build and Install](#build-and-install)
+ - [Documentation](#documentation)
+ - [License](#license)
+ - [Support](#support)
+ - [Contributing](#contributing)
+ - [Legalities](#legalities)
 
-### Using Xcode
+Overview
+========
 
-1. Go to `File > Add Packages...`
-2. Enter the package URL: `https://github.com/21-DOT-DEV/swift-openssl`
-3. Select the desired version
+The OpenSSL toolkit includes:
 
-### Using Package.swift (Recommended)
+- **libssl**
+  an implementation of all TLS protocol versions up to TLSv1.3 ([RFC 8446]),
+  DTLS protocol versions up to DTLSv1.2 ([RFC 6347]) and
+  the QUIC version 1 protocol ([RFC 9000]).
 
-Add the following to your `Package.swift` file:
+- **libcrypto**
+  a full-strength general purpose cryptographic library. It constitutes the
+  basis of the TLS implementation, but can also be used independently.
 
-```swift
-.package(url: "https://github.com/21-DOT-DEV/swift-openssl.git", from: "0.1.0"),
-```
+- **openssl**
+  the OpenSSL command line tool, a swiss army knife for cryptographic tasks,
+  testing and analyzing. It can be used for
+  - creation of key parameters
+  - creation of X.509 certificates, CSRs and CRLs
+  - calculation of message digests
+  - encryption and decryption
+  - SSL/TLS/DTLS and client and server tests
+  - QUIC client tests
+  - handling of S/MIME signed or encrypted mail
+  - and more...
 
-> [!WARNING]
-> This package is pre-1.0 ([SemVer major version zero](https://semver.org/#spec-item-4)). The public API should not be considered stable and may change with any release. Pin a version using `exact:` to avoid unexpected breaking changes.
+Download
+========
 
-Then, include `OpenSSL` as a dependency in your target:
+For Production Use
+------------------
 
-```swift
-.target(name: "<target>", dependencies: [
-    .product(name: "OpenSSL", package: "swift-openssl")
-]),
-```
+Source code tarballs of the official releases can be downloaded from
+[openssl-library.org/source/](https://openssl-library.org/source/).
+The OpenSSL project does not distribute the toolkit in binary form.
 
-## Usage Examples
+However, for a large variety of operating systems precompiled versions
+of the OpenSSL toolkit are available. In particular, on Linux and other
+Unix operating systems, it is normally recommended to link against the
+precompiled shared libraries provided by the distributor or vendor.
 
-> [!CAUTION]
-> This package has not yet implemented cryptographic test vectors. Do not use in production until proper verification is in place.
+We also maintain a list of third parties that produce OpenSSL binaries for
+various Operating Systems (including Windows) on the [Binaries] page on our
+wiki.
 
-### SHA-256 Hashing
+For Testing and Development
+---------------------------
 
-```swift
-import OpenSSL
+Although testing and development could in theory also be done using
+the source tarballs, having a local copy of the git repository with
+the entire project history gives you much more insight into the
+code base.
 
-// Hash data
-let data = "Hello, World!".data(using: .utf8)!
-let digest = SHA256.hash(data: data)
-print(digest.hexString)
+The main OpenSSL Git repository is private.
+There is a public GitHub mirror of it at [github.com/openssl/openssl],
+which is updated automatically from the former on every commit.
 
-// Hash string directly
-let stringDigest = SHA256.hash(string: "Hello, World!")
-print(stringDigest.hexString)
-```
+A local copy of the Git repository can be obtained by cloning it from
+the GitHub mirror using
 
-### Base64URL Encoding
+    git clone https://github.com/openssl/openssl.git
 
-```swift
-import OpenSSL
+If you intend to contribute to OpenSSL, either to fix bugs or contribute
+new features, you need to fork the GitHub mirror and clone your public fork
+instead.
 
-// Encode data as base64url (useful for JWT)
-let data = "Hello, World!".data(using: .utf8)!
-let encoded = Base64URL.encode(data)
-print(encoded)
+    git clone https://github.com/yourname/openssl.git
 
-// Decode base64url string
-if let decoded = Base64URL.decode(encoded) {
-    print(String(data: decoded, encoding: .utf8)!)
-}
-```
+This is necessary because all development of OpenSSL nowadays is done via
+GitHub pull requests. For more details, see [Contributing](#contributing).
 
-### RSA Key Parsing
+Build and Install
+=================
 
-```swift
-import OpenSSL
+After obtaining the Source, have a look at the [INSTALL](INSTALL.md) file for
+detailed instructions about building and installing OpenSSL. For some
+platforms, the installation instructions are amended by a platform specific
+document.
 
-let privateKeyPEM = """
------BEGIN RSA PRIVATE KEY-----
-...
------END RSA PRIVATE KEY-----
-"""
+ * [Notes for UNIX-like platforms](NOTES-UNIX.md)
+ * [Notes for Android platforms](NOTES-ANDROID.md)
+ * [Notes for Windows platforms](NOTES-WINDOWS.md)
+ * [Notes for the DOS platform with DJGPP](NOTES-DJGPP.md)
+ * [Notes for the OpenVMS platform](NOTES-VMS.md)
+ * [Notes on Perl](NOTES-PERL.md)
+ * [Notes on Valgrind](NOTES-VALGRIND.md)
 
-// Parse PEM-encoded keys
-let privateKey = try RSA.PrivateKey(pemRepresentation: privateKeyPEM)
-print(privateKey.pemData)
-```
+Specific notes on upgrading to OpenSSL 3.x from previous versions can be found
+in the [ossl-guide-migration(7ossl)] manual page.
 
-> [!NOTE]
-> RSA signing and verification require the OpenSSL provider layer, which is not yet included. Key parsing is functional.
+Documentation
+=============
 
-### OpenSSL Version
+README Files
+------------
 
-```swift
-import OpenSSL
+There are some README.md files in the top level of the source distribution
+containing additional information on specific topics.
 
-// Get the OpenSSL version string
-print(SSL.versionString)
-```
+ * [Information about the OpenSSL QUIC protocol implementation](README-QUIC.md)
+ * [Information about the OpenSSL Provider architecture](README-PROVIDERS.md)
+ * [Information about using the OpenSSL FIPS validated module](README-FIPS.md)
+ * [Information about the legacy OpenSSL Engine architecture](README-ENGINES.md)
 
-## Development
+The OpenSSL Guide
+-----------------
 
-### Requirements
+There are some tutorial and introductory pages on some important OpenSSL topics
+within the [OpenSSL Guide].
 
-- Swift 6.0+
-- macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+
+Manual Pages
+------------
 
-### Updating OpenSSL Version
+The manual pages for the master branch and all current stable releases are
+available online.
 
-1. Update the subtree to the new version:
-   ```bash
-   swift package --allow-writing-to-package-directory subtree pull --name openssl --branch openssl-X.Y.Z
-   ```
+- [OpenSSL master](https://docs.openssl.org/master/)
+- [OpenSSL 3.6](https://docs.openssl.org/3.6/)
+- [OpenSSL 3.5](https://docs.openssl.org/3.5/)
+- [OpenSSL 3.4](https://docs.openssl.org/3.4/)
+- [OpenSSL 3.3](https://docs.openssl.org/3.3/)
+- [OpenSSL 3.2](https://docs.openssl.org/3.2/)
+- [OpenSSL 3.0](https://docs.openssl.org/3.0/)
 
-2. Regenerate Configure-generated files (see below)
+Demos
+-----
 
-3. Re-extract sources:
-   ```bash
-   swift package --allow-writing-to-package-directory subtree extract --clean --all
-   swift package --allow-writing-to-package-directory subtree extract --all
-   ```
+There are numerous source code demos for using various OpenSSL capabilities in the
+[demos subfolder](./demos).
 
-4. Copy generated files and verify build
+Wiki
+----
 
-### Regenerating Configure-Generated Files
+There is a [GitHub Wiki] which is currently not very active.
 
-Some OpenSSL headers are generated by the Configure script. These files are committed to the repository and only need regeneration when updating OpenSSL versions.
+License
+=======
 
-**Generated files:**
-- `include/openssl/configuration.h` - Build configuration and `OPENSSL_NO_*` defines
-- `crypto/buildinf.h` - Build information (compiler, date, platform)
-- `providers/fips/include/fips/fipsindicator.h` - FIPS indicator macros
+OpenSSL is licensed under the Apache License 2.0, which means that
+you are free to get and use it for commercial and non-commercial
+purposes as long as you fulfill its conditions.
 
-**Regeneration steps:**
+See the [LICENSE.txt](LICENSE.txt) file for more details.
 
-```bash
-# Navigate to vendored OpenSSL
-cd Vendor/openssl
+Support
+=======
 
-# Run Configure with disabled algorithms (no-asm for portability)
-./Configure darwin64-arm64-cc no-asm no-shared no-apps no-docs no-tests \
-    no-rc5 no-rc2 no-idea no-bf no-cast no-seed no-camellia \
-    no-mdc2 no-whirlpool no-md2 no-md4 \
-    no-sm2 no-sm3 no-sm4 no-aria no-gost no-blake2 \
-    no-lms no-ml-dsa no-ml-kem no-slh-dsa \
-    no-ec_nistp_64_gcc_128 no-padlockeng
+There are various ways to get in touch. The correct channel depends on
+your requirement. See the [SUPPORT](SUPPORT.md) file for more details.
 
-# Generate all required files
-make build_all_generated
+Contributing
+============
 
-# Extract sources (includes configuration.h and other generated files)
-cd ../..
-swift package --allow-writing-to-package-directory subtree extract --name openssl
+If you are interested and willing to contribute to the OpenSSL project,
+please take a look at the [CONTRIBUTING](CONTRIBUTING.md) file.
 
-# Clean up Vendor directory (required - do not commit generated files to Vendor/)
-cd Vendor/openssl
-make distclean
-```
+Legalities
+==========
 
-**Disabled algorithms:**
-| Category | Algorithms | Rationale |
-|----------|------------|-----------|
-| Legacy ciphers | RC5, RC2, IDEA, BF, CAST, SEED, Camellia | Deprecated, rarely used |
-| Legacy hashes | MDC2, Whirlpool, MD2, MD4, Blake2 | Deprecated or specialized |
-| Regional standards | SM2, SM3, SM4, ARIA, GOST | Chinese/Korean/Russian standards |
-| Post-quantum | LMS, ML-DSA, ML-KEM, SLH-DSA | Experimental, increases binary size |
-| Platform-specific | ec-nistp-64-gcc-128, padlockeng | Requires specific compiler/hardware |
+A number of nations restrict the use or export of cryptography. If you are
+potentially subject to such restrictions, you should seek legal advice before
+attempting to develop or distribute cryptographic code.
 
-**Important:** Always run `make distclean` after extraction. Generated files must NOT be committed to `Vendor/openssl/` as they will conflict with subtree operations.
+Copyright
+=========
 
-**Note:** The `buildinf.h` file contains build-time information (compiler flags, build date). Since this is for informational purposes only, generating once for a canonical platform is sufficient.
+Copyright (c) 1998-2026 The OpenSSL Project Authors
 
-### Project Structure
+Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
 
-```
-Sources/
-├── OpenSSL/           # Swift wrapper API
-├── libcrypto/         # OpenSSL crypto library (extracted + generated)
-│   ├── crypto/        # Core crypto sources
-│   ├── include/       # Public headers (openssl/*.h)
-│   ├── internal_include/  # Internal headers (crypto/*.h, internal/*.h)
-│   └── providers/     # Provider headers
-└── libssl/            # OpenSSL SSL/TLS library (extracted)
-    ├── src/           # SSL sources
-    └── include/       # SSL headers
-```
+All rights reserved.
 
-## Security
+<!-- Links  -->
 
-For information on reporting security vulnerabilities, see [SECURITY.md](SECURITY.md).
+[www.openssl.org]:
+    <https://www.openssl.org>
+    "OpenSSL Homepage"
 
-## Contributing
+[github.com/openssl/openssl]:
+    <https://github.com/openssl/openssl>
+    "OpenSSL GitHub Mirror"
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started. For AI-assisted development guidance, see [AGENTS.md](AGENTS.md).
+[GitHub Wiki]:
+    <https://github.com/openssl/openssl/wiki>
+    "OpenSSL Wiki"
 
-## License
+[ossl-guide-migration(7ossl)]:
+    <https://docs.openssl.org/master/man7/ossl-guide-migration>
+    "OpenSSL Migration Guide"
 
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
+[RFC 8446]:
+     <https://tools.ietf.org/html/rfc8446>
 
-OpenSSL is licensed under the Apache License 2.0.
+[RFC 6347]:
+     <https://tools.ietf.org/html/rfc6347>
+
+[RFC 9000]:
+     <https://tools.ietf.org/html/rfc9000>
+
+[Binaries]:
+    <https://github.com/openssl/openssl/wiki/Binaries>
+    "List of third party OpenSSL binaries"
+
+[OpenSSL Guide]:
+    <https://docs.openssl.org/master/man7/ossl-guide-introduction>
+    "An introduction to OpenSSL"
+
+<!-- Logos and Badges -->
+
+[openssl logo]:
+    doc/images/openssl.svg
+    "OpenSSL Logo"
+
+[github actions ci badge]:
+    <https://github.com/openssl/openssl/workflows/GitHub%20CI/badge.svg>
+    "GitHub Actions CI Status"
+
+[github actions ci]:
+    <https://github.com/openssl/openssl/actions/workflows/ci.yml>
+    "GitHub Actions CI"
+
+[appveyor badge]:
+    <https://ci.appveyor.com/api/projects/status/8e10o7xfrg73v98f/branch/master?svg=true>
+    "AppVeyor Build Status"
+
+[appveyor jobs]:
+    <https://ci.appveyor.com/project/openssl/openssl/branch/master>
+    "AppVeyor Jobs"
