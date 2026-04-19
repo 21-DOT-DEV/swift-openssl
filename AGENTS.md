@@ -1,70 +1,43 @@
-# AI Agent Guide: swift-openssl
+# AGENTS.md (swift-openssl)
 
-**Last Updated**: 2026-03-14 | **Phase**: 1 Complete, Phases 2–6 Planned
+A Swift 6.1 wrapper around [OpenSSL 3.x](https://github.com/openssl/openssl) providing modern, type-safe bindings for cryptographic operations with a [swift-crypto](https://github.com/apple/swift-crypto)-aligned API. Supports macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+, and Linux. Uses Swift 6 strict concurrency (`swiftLanguageModes: [.v6]`). Three products: `libcrypto` (raw C bindings), `libssl` (raw C bindings), and `OpenSSL` (idiomatic Swift API).
 
-## What This Project Is
+## Commands
 
-A Swift package providing modern, type-safe bindings for OpenSSL cryptographic operations — matching swift-crypto's API style — across Apple platforms and Linux. Uses Swift's C interoperability with OpenSSL 3.x.
+- Build: `swift build`
+- Test: `swift test`
+- Linux build: `docker build .`
+- Subtree update: `swift package --build-path .build/subtree --allow-writing-to-package-directory --allow-network-connections all subtree update openssl --ref <tag>`
+- Subtree extract: `swift package --build-path .build/subtree --allow-writing-to-package-directory subtree extract --name openssl --force`
 
-## Current State
+## Non-obvious patterns
 
-### What Exists
-- **Phase 1 (Core Extraction)**: Complete
-  - OpenSSL 3.x source extraction via git subtree
-  - SPM build configuration with `libcrypto` and `libssl` C targets
-  - Swift wrapper module (`OpenSSL`) with top-level types: `SHA256`, `RSA`, `SSL`, `Base64URL`
-  - `OpenSSLError` enum with `Sendable`, `Equatable`, `LocalizedError` conformance
-  - Algorithm selection (legacy ciphers, hashes, regional standards disabled)
-  - 11 tests passing (SHA-256, Base64URL, RSA key parsing)
+- **Conditional dev deps**: `Package.swift` uses `Context.gitInformation?.currentTag` to exclude `swift-plugin-subtree` at tagged releases. Consumers resolving a tagged version get zero transitive dependencies; the package has no runtime dependencies.
+- **Three-product split**: `libcrypto` + `libssl` are raw C bindings (consumable standalone); `OpenSSL` is the idiomatic Swift API with top-level types (`SHA256`, `RSA`, `SSL`, `Base64URL`) — no namespace enum, matching swift-crypto. Never leak raw C types (`OpaquePointer`, `EVP_PKEY*`) through `OpenSSL`'s public API.
+- **Extraction flow**: OpenSSL upstream is extracted via `subtree.yaml` (remote `openssl/openssl`, tag `openssl-3.6.2`). `Vendor/openssl` → `Sources/libcrypto/**` + `Sources/libssl/**`. Do NOT edit `Sources/libcrypto/**` or `Sources/libssl/**` directly; changes are overwritten on the next extraction. Manually maintained files live under `Sources/OpenSSL/`.
+- **Configure-generated headers**: A subset of headers under `Sources/libcrypto/**` are NOT in upstream — they are generated from `.h.in` templates by OpenSSL's Perl-based Configure script (e.g., `include/openssl/configuration.h`, `include/openssl/cmp.h`, `crypto/buildinf.h`, `providers/fips/include/fips/fipsindicator.h`). They must be regenerated whenever a bump changes a `.h.in` template or the `OPENSSL_NO_*` flag set. See `Vendor/AGENTS.md` for the Configure recipe.
+- **Bump tiering**: For patch releases (e.g., `3.6.0 → 3.6.2`), `subtree update --ref <tag>` + `subtree extract --force` is usually sufficient. Run the full Configure + `make build_all_generated` + re-extract + `make distclean` dance only when `swift build` reports missing identifiers (indicates a `.h.in` template changed) or for minor/major upstream bumps.
+- **Algorithm selection is double-encoded**: `subtree.yaml` `exclude:` lists AND `OPENSSL_NO_*` defines in `Sources/libcrypto/include/openssl/configuration.h` must stay synchronized. Disabling a new algorithm requires both updating excludes and adding the flag to the Configure command in the README.
+- **Runtime fallback paths**: `Package.swift` defines `OPENSSLDIR` (`/usr/local/ssl`), `ENGINESDIR` (`/usr/local/lib/engines`), and `MODULESDIR` (`/usr/local/lib/ossl-modules`) for OpenSSL's runtime path lookups. Changing them affects `x509_def.c`, `eng_list.c`, and `provider_core.c` defaults.
+- **Linux-only C define**: `_GNU_SOURCE` is defined on Linux only, to enable glibc features like `pthread_rwlock_t` and full POSIX support.
+- **iOS `clear_cache` shim**: Not applicable here (this is swift-openssl, not swift-tor). OpenSSL uses `OPENSSL_NO_ASM` to avoid platform-specific assembly.
 
-### What's Planned
-- **Phase 2**: Foundation Crypto (HMAC, HKDF, SymmetricKey, HashFunction, X.509 basic, error types, pointer wrappers)
-- **Phase 3**: Verification (RSA-PSS, Certificate Transparency, AEAD)
-- **Phase 4**: Advanced Validation (X.509 Chain, Trust Store, Verification Policy)
-- **Phase 5**: Binary Size Optimization (no-engine, no-hw, provider trimming)
-- **Phase 6**: Advanced Extensions (Merkle proofs, RSA-PSS signing, OCSP, TLS session info)
+## Boundaries
 
-See `.specify/memory/roadmap.md` and `.specify/memory/roadmap/` for detailed phase specs.
+- **Never**: emit private keys or sensitive material; weaken constant-time code in vendored C sources; edit files under `Vendor/**`, `Sources/libcrypto/**`, or `Sources/libssl/**` directly; broaden GitHub Actions `permissions` without justification; add runtime dependencies; re-enable algorithms disabled by constitution (legacy ciphers, regional standards, post-quantum until standardized).
+- **Ask first**: add new third-party dependencies (dev or runtime); modify `subtree.yaml` extraction patterns; change the `Configure` flag set; add a new platform.
+- See the [21-DOT-DEV contributing guidelines](https://github.com/21-DOT-DEV/.github/blob/main/CONTRIBUTING.md) for branching and commit guidelines. See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
-## Architecture
+## Scoped guidance
 
-**Pattern**: Single module with top-level types (matching swift-crypto)
+Directory-specific `AGENTS.md` files provide additional context:
 
-```
-Sources/
-├── OpenSSL/           # Swift wrapper API (top-level types: SHA256, RSA, SSL, Base64URL)
-├── libcrypto/         # OpenSSL crypto library (C sources + headers)
-└── libssl/            # OpenSSL SSL/TLS library (C sources + headers)
-```
+- `.github/AGENTS.md` — CI workflows and Actions security policy
+- `Sources/AGENTS.md` — Swift targets, C bindings, extraction paths, header-search-path layout
+- `Tests/AGENTS.md` — Swift Testing framework, cryptographic test-vector backlog
+- `Vendor/AGENTS.md` — vendored OpenSSL sources, subtree sync rules, Configure regeneration recipe
 
-- `import OpenSSL` gives access to all Swift types directly (no namespace enum)
-- `libcrypto` and `libssl` are also exposed as separate products for low-level access
+## Maintenance
 
-## Tech Stack
-
-- **Language**: Swift 6.0+
-- **Package Manager**: Swift Package Manager
-- **Testing**: XCTest
-- **Platforms**: macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+, Linux
-- **OpenSSL**: 3.x (vendored via git subtree)
-
-## Key Constraints
-
-- **Pre-1.0**: APIs are not stable, pin with `exact:` version
-- **No test vectors yet**: Cryptographic test vectors (Wycheproof, NIST CAVP) planned for Phase 2+
-- **No ASM**: Built with `no-asm` for cross-platform portability
-- **Top-level types**: Types like `SHA`, `RSA`, `HMAC` are module-scope (not nested in a namespace enum)
-
-## Global Guidance
-
-- Keep changes small and reviewable
-- Do not introduce new third-party dependencies without asking
-- Do not output or log secrets (private keys, sensitive test vectors)
-- Validate changes with `swift test`
-
-## How to Help
-
-1. Check `.specify/memory/roadmap.md` for current phase status
-2. Review phase files in `.specify/memory/roadmap/` for detailed specs
-3. Run `swift test` to verify all tests pass
-4. Follow existing code style (doc comments on all public API, `Sendable` conformance)
+- Keep scoped `AGENTS.md` files limited to deltas; avoid duplicating root guidance.
+- Update when build/test workflows, toolchain versions, platform support, or extraction patterns change.

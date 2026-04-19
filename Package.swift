@@ -17,10 +17,7 @@ let package = Package(
         .library(name: "libssl", targets: ["libssl"]),
         .library(name: "OpenSSL", targets: ["OpenSSL"])
     ],
-    dependencies: [
-        // Dependencies used for package development
-        .package(url: "https://github.com/21-DOT-DEV/swift-plugin-subtree.git", exact: "0.0.13")
-    ],
+    dependencies: Package.Dependency.developmentDependencies,
     targets: [
         // MARK: - Main Targets
 
@@ -78,3 +75,16 @@ let package = Package(
     swiftLanguageModes: [.v6],
     cLanguageStandard: .c99
 )
+
+extension Package.Dependency {
+    /// Development-only dependencies, excluded at tagged releases.
+    ///
+    /// When resolved at a tagged release, development tools (subtree sync tooling, etc.)
+    /// are excluded so consumers aren't forced to download them.
+    static var developmentDependencies: [Package.Dependency] {
+        guard Context.gitInformation?.currentTag == nil else { return [] }
+        return [
+            .package(url: "https://github.com/21-DOT-DEV/swift-plugin-subtree.git", exact: "0.0.13")
+        ]
+    }
+}

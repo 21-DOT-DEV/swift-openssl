@@ -1,20 +1,17 @@
 <!--
 Sync Impact Report:
-- Version: N/A → 1.0.0 (Initial constitution)
-- Change Type: Initial creation
+- Version: 1.0.0 → 1.0.1 (PATCH — editorial refresh, no principle removals)
+- Change Type: Align current practices with implementation (Swift 6.1 + Swift Testing, org-level community files, subtree-automation workflows)
 - Scope: swift-openssl package (/Users/csjones/Developer/swift-openssl)
-- Structure: Two-tier (7 core principles + implementation practices in nested format)
-- Core Principles:
-  I. Scope & swift-crypto Alignment
-  II. Cryptographic Correctness
-  III. Key & Secret Handling
-  IV. API Design & Safety
-  V. Spec-First & Test-Driven Development
-  VI. Cross-Platform CI & Quality Gates
-  VII. Open Source Excellence
-- Enforcement: Three-tier model (MUST/SHOULD/MAY) with explicit MUST NOT
-- Governance: BDFL model with security-relevant change protocols
-- Compliance: Continuous CI + event-driven strategic review
+- Principles: unchanged (7 core principles)
+- Changes in 1.0.1:
+  • Principle VII: reworded CONTRIBUTING.md MUST to reference the org-level guidelines (local CONTRIBUTING.md removed; guidelines now live at https://github.com/21-DOT-DEV/.github). Intent unchanged, so PATCH semver is appropriate.
+  • Principle VI: enumerated concrete CI workflows (`apple-builds.yml`, `docker-builds.yml`, `check-subtree-updates.yml`, `update-subtree.yml`).
+  • Tech Stack section: Swift 6.1, Swift Testing (XCTest fully migrated), `macos-26` CI runners, BOT_TOKEN-gated subtree automation.
+  • Follow-up TODOs: retained SwiftLint/SwiftFormat; test-vector backfill remains tracked for Phase 2.
+- Enforcement: Three-tier model (MUST/SHOULD/MAY) with explicit MUST NOT — unchanged
+- Governance: BDFL model with security-relevant change protocols — unchanged
+- Compliance: Continuous CI + event-driven strategic review — unchanged
 - Templates Status:
   ⚠ spec-template.md - Requires alignment review
   ⚠ plan-template.md - Requires alignment review
@@ -158,7 +155,7 @@ This constitution governs the **swift-openssl** package, a Swift package providi
 **Rationale**: Cross-platform reliability is a core value proposition. Determinism is critical for testability and reproducibility. Consistent code style reduces friction in reviews and AI-assisted development.
 
 **Practices**:
-- **MUST** test across all supported platforms (macOS, iOS, tvOS, watchOS, visionOS, Linux)
+- **MUST** test across all supported platforms (macOS, iOS, tvOS, watchOS, visionOS, Linux) via the four current workflows (`apple-builds.yml`, `docker-builds.yml`) — subtree automation workflows (`check-subtree-updates.yml`, `update-subtree.yml`) cover dependency freshness
 - **MUST** test on both Intel and ARM architectures where applicable
 - **MUST** ensure deterministic behavior: given same inputs, operations produce same outputs across all platforms
 - **MUST** pass all unit and integration tests before merge
@@ -181,7 +178,7 @@ This constitution governs the **swift-openssl** package, a Swift package providi
 **Practices**:
 - **MUST** document architecture decisions
 - **MUST** maintain clear README with setup instructions and usage examples
-- **MUST** provide contribution guidelines (CONTRIBUTING.md)
+- **MUST** link to org-level contribution guidelines (see [21-DOT-DEV/.github CONTRIBUTING.md](https://github.com/21-DOT-DEV/.github/blob/main/CONTRIBUTING.md))
 - **MUST** include LICENSE file (MIT for Swift wrapper; Apache 2.0 for vendored OpenSSL)
 - **MUST** write clear, human-readable code (readability over cleverness)
 - **MUST** apply KISS and DRY principles
@@ -254,14 +251,18 @@ This constitution governs the **swift-openssl** package, a Swift package providi
 - **visionOS** 1+ (arm64)
 - **Linux** (x86_64, arm64)
 
-### Current Stack (2026-03-14)
+### Current Stack (2026-04-19)
 
-**Language**: Swift 6.0+
+**Language**: Swift 6.1
 **Build**: Swift Package Manager (SPM)
-**Testing**: XCTest (Phase 1), swift-testing planned for Phase 2+
-**CI**: GitHub Actions (apple-builds.yml, docker-builds.yml)
+**Testing**: Swift Testing (`import Testing`, `@Test`, `@Suite`, `#expect`, `#require`)
+**CI**: GitHub Actions on `macos-26` + `ubuntu-latest`
+ - `apple-builds.yml` — macOS `swift test` + iOS/tvOS/watchOS/visionOS xcodebuild
+ - `docker-builds.yml` — Linux smoke via `docker build .`
+ - `check-subtree-updates.yml` — scheduled upstream poll (requires `BOT_TOKEN`)
+ - `update-subtree.yml` — `workflow_dispatch`-driven bump PR (requires `BOT_TOKEN`)
 **Linting**: TODO — SwiftLint + SwiftFormat setup required before Phase 2
-**OpenSSL**: 3.x (vendored via git subtree in `Vendor/openssl/`)
+**OpenSSL**: `openssl-3.6.2` (vendored via git subtree in `Vendor/openssl/`)
 
 ### Products
 
@@ -348,9 +349,10 @@ Changes affecting cryptographic behavior require additional scrutiny:
 
 ## Version History
 
-**Version**: 1.0.0
+**Version**: 1.0.1
 **Ratified**: 2026-03-14
-**Last Amended**: 2026-03-14
+**Last Amended**: 2026-04-19
 
 **Changelog**:
+- **1.0.1** (2026-04-19): Editorial refresh aligning constitution with current implementation. Principle VII's `CONTRIBUTING.md` MUST reworded to reference the org-level guidelines (local file removed; guidelines live at 21-DOT-DEV/.github). Tech stack updated to Swift 6.1, Swift Testing (full XCTest migration complete), `macos-26` runners, and the four current CI workflows including BOT_TOKEN-gated subtree automation. No principle additions or removals.
 - **1.0.0** (2026-03-14): Initial constitution with 7 core principles, three-tier enforcement, BDFL governance, OpenSSL subtree management, security-relevant change protocols. Modeled after swift-secp256k1 constitution v1.0.0.
