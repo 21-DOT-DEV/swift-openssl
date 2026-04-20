@@ -3,8 +3,8 @@ subtrees:
 - name: openssl
   remote: https://github.com/openssl/openssl
   prefix: Vendor/openssl
-  commit: f800a53185a76d633d469607937c3c55383f0fff
-  tag: openssl-3.6.2
+  commit: 9d98df23f38afa21e159d910335b49fb196206e8
+  tag: rsaref
   squash: true
   extractions:
   - from:
