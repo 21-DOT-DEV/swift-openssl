@@ -39,6 +39,7 @@ jobs:
 
       - name: Build DocC Archive
         run: |
+          mkdir -p docs
           swift package \
             --allow-writing-to-directory ./docs \
             generate-documentation \
