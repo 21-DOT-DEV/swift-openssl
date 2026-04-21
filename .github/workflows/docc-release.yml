@@ -3,6 +3,7 @@ name: DocC Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions: {}
 
