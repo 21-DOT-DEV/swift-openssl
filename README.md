@@ -1,223 +1,84 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Apple Platforms](https://github.com/21-DOT-DEV/swift-openssl/actions/workflows/apple-builds.yml/badge.svg)](https://github.com/21-DOT-DEV/swift-openssl/actions/workflows/apple-builds.yml)
+[![Docker Builds](https://github.com/21-DOT-DEV/swift-openssl/actions/workflows/docker-builds.yml/badge.svg)](https://github.com/21-DOT-DEV/swift-openssl/actions/workflows/docker-builds.yml)
 
 # 🗝️ swift-openssl
 
-Swift package providing OpenSSL cryptographic functionality with modern Swift APIs. Uses Swift's C interoperability with [OpenSSL](https://github.com/openssl/openssl).
+Modern Swift bindings for [OpenSSL 3.x](https://github.com/openssl/openssl) — a type-safe Swift 6.1 API for SHA-256, Base64URL, and RSA, plus raw `libcrypto` and `libssl` products other Swift packages can link for a full OpenSSL runtime.
 
-## Contents
+> [!CAUTION]
+> Pre-1.0 and cryptographic test vectors are not yet integrated. Do not use in production until proper verification is in place. See the [Security Considerations](Sources/OpenSSL/OpenSSL.docc/SecurityConsiderations.md) guide for the full MVP-gap list.
 
-- [Features](#features)
-- [Installation](#installation)
-- [Usage Examples](#usage-examples)
-- [Development](#development)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
+## Why swift-openssl?
+
+`OpenSSL` complements — rather than replaces — [swift-crypto](https://github.com/apple/swift-crypto) and Apple's CryptoKit. Reach for this package when you need algorithms Apple's frameworks don't cover (PKCS#1 padding variants, PEM I/O, Base64URL with the JOSE alphabet), when you need to interop with existing OpenSSL-based C/C++ code, or when you need to audit the exact OpenSSL version shipping with your binary. For packages like [swift-tor](https://github.com/21-DOT-DEV/swift-tor) that embed C code calling `EVP_*` / `SSL_*` symbols, the raw `libcrypto` and `libssl` products provide a statically linked, vendor-controlled runtime.
 
 ## Features
 
-- Provide modern Swift bindings for OpenSSL cryptographic operations
-- Offer a familiar API design inspired by [Swift Crypto](https://github.com/apple/swift-crypto)
-- Expose libcrypto and libssl bindings for full control of the implementation
-- Ensure availability for Linux and Apple platform ecosystems
-- Maintain automatic updates for Swift and OpenSSL versions
+- **Modern Swift API** for SHA-256 ([FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final)), Base64URL ([RFC 4648 §5](https://datatracker.ietf.org/doc/html/rfc4648#section-5)), and RSA PEM ingestion (PKCS#1 / PKCS#8).
+- **Raw `libcrypto` and `libssl` C bindings** for Swift packages that need a full OpenSSL runtime — used by [swift-tor](https://github.com/21-DOT-DEV/swift-tor) for its Tor daemon.
+- **OpenSSL 3.6.2 statically vendored** via [subtree](https://github.com/21-DOT-DEV/subtree) — no system OpenSSL dependency at runtime.
+- **Swift 6.1 strict concurrency**, `Sendable` throughout, zero raw `OpaquePointer` leakage in the public API.
+- **Apple platforms + Linux**: macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+, Ubuntu 22.04+.
 
 ## Installation
 
-This package uses Swift Package Manager. To add it to your project:
-
-### Using Xcode
-
-1. Go to `File > Add Packages...`
-2. Enter the package URL: `https://github.com/21-DOT-DEV/swift-openssl`
-3. Select the desired version
-
-### Using Package.swift (Recommended)
-
-Add the following to your `Package.swift` file:
+Add the package to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/21-DOT-DEV/swift-openssl.git", from: "0.1.0"),
+.package(url: "https://github.com/21-DOT-DEV/swift-openssl.git", exact: "0.1.0"),
 ```
 
 > [!WARNING]
-> This package is pre-1.0 ([SemVer major version zero](https://semver.org/#spec-item-4)). The public API should not be considered stable and may change with any release. Pin a version using `exact:` to avoid unexpected breaking changes.
+> Pin with `exact:` while the package is pre-1.0 ([SemVer major version zero](https://semver.org/#spec-item-4) reserves this range as "anything may change at any time").
 
-Then, include `OpenSSL` as a dependency in your target:
+Include `OpenSSL` in your target:
 
 ```swift
 .target(name: "<target>", dependencies: [
-    .product(name: "OpenSSL", package: "swift-openssl")
+    .product(name: "OpenSSL", package: "swift-openssl"),
 ]),
 ```
 
-## Usage Examples
+Or use Xcode: **File → Add Packages…**, then enter `https://github.com/21-DOT-DEV/swift-openssl`.
 
-> [!CAUTION]
-> This package has not yet implemented cryptographic test vectors. Do not use in production until proper verification is in place.
-
-### SHA-256 Hashing
+## Quick Start
 
 ```swift
 import OpenSSL
 
-// Hash data
-let data = "Hello, World!".data(using: .utf8)!
-let digest = SHA256.hash(data: data)
+let digest = SHA256.hash(string: "Hello, World!")
 print(digest.hexString)
-
-// Hash string directly
-let stringDigest = SHA256.hash(string: "Hello, World!")
-print(stringDigest.hexString)
+// dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
 ```
 
-### Base64URL Encoding
+For **Base64URL encoding**, **RSA PEM parsing**, **runtime version auditing**, and the **product-selection guide** (`OpenSSL` vs `libcrypto` vs `libssl`), see the DocC catalog under [`Sources/OpenSSL/OpenSSL.docc/`](Sources/OpenSSL/OpenSSL.docc/) — start with [Getting Started](Sources/OpenSSL/OpenSSL.docc/GettingStarted.md). Every example there is backed by an executable SwiftPM snippet and a test, so nothing drifts from the code. Build the full hyperlinked archive locally with `swift package generate-documentation --target OpenSSL`.
 
-```swift
-import OpenSSL
+## Requirements
 
-// Encode data as base64url (useful for JWT)
-let data = "Hello, World!".data(using: .utf8)!
-let encoded = Base64URL.encode(data)
-print(encoded)
-
-// Decode base64url string
-if let decoded = Base64URL.decode(encoded) {
-    print(String(data: decoded, encoding: .utf8)!)
-}
-```
-
-### RSA Key Parsing
-
-```swift
-import OpenSSL
-
-let privateKeyPEM = """
------BEGIN RSA PRIVATE KEY-----
-...
------END RSA PRIVATE KEY-----
-"""
-
-// Parse PEM-encoded keys
-let privateKey = try RSA.PrivateKey(pemRepresentation: privateKeyPEM)
-print(privateKey.pemData)
-```
-
-> [!NOTE]
-> RSA signing and verification require the OpenSSL provider layer, which is not yet included. Key parsing is functional.
-
-### OpenSSL Version
-
-```swift
-import OpenSSL
-
-// Get the OpenSSL version string
-print(SSL.versionString)
-```
-
-## Development
-
-### Requirements
-
-- Swift 6.1+
-- macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+
-
-### Updating OpenSSL Version
-
-OpenSSL is vendored via git subtree. Update procedure depends on the release scale:
-
-#### Minimal recipe (patch releases — e.g., `3.6.0` → `3.6.2`)
-
-```bash
-# 1. Bump the subtree to a new tag (updates subtree.yaml + commits Vendor with git-subtree-* trailers)
-swift package --build-path .build/subtree \
-  --allow-writing-to-package-directory \
-  --allow-network-connections all \
-  subtree update openssl --ref openssl-3.6.2
-
-# 2. Re-extract (--force overwrites previously-extracted sources)
-swift package --build-path .build/subtree \
-  --allow-writing-to-package-directory \
-  subtree extract --name openssl --force
-
-# 3. Verify
-swift build && swift test
-```
-
-If step 3 is green, you're done. The Configure-generated files already under `Sources/libcrypto/` survive because we skip `--clean`.
-
-#### Full recipe (minor/major bumps, or when `swift build` fails)
-
-Patch releases can still change Configure `.h.in` templates (e.g., new `OSSL_CMP_PKISTATUS_*` constants in 3.6.2). If step 3 above fails with missing identifiers, run the full Configure dance:
-
-```bash
-# Regenerate Configure outputs
-cd Vendor/openssl
-./Configure darwin64-arm64-cc no-asm no-shared no-apps no-docs no-tests \
-    no-rc5 no-rc2 no-idea no-bf no-cast no-seed no-camellia \
-    no-mdc2 no-whirlpool no-md2 no-md4 \
-    no-sm2 no-sm3 no-sm4 no-aria no-gost no-blake2 \
-    no-lms no-ml-dsa no-ml-kem no-slh-dsa \
-    no-ec_nistp_64_gcc_128 no-padlockeng
-make build_all_generated
-cd ../..
-
-# Re-extract to pick up regenerated .h and generated .c files
-swift package --build-path .build/subtree \
-  --allow-writing-to-package-directory \
-  subtree extract --name openssl --force
-
-# Clean Vendor (IMPORTANT — generated files must NOT be committed to Vendor/)
-( cd Vendor/openssl && make distclean )
-
-# Verify
-swift build && swift test
-```
-
-**Configure-generated files** (live under `Sources/libcrypto/`, NOT in upstream `Vendor/openssl/`):
-
-- `include/openssl/configuration.h` — build configuration + `OPENSSL_NO_*` defines
-- `include/openssl/*.h` from `.h.in` templates — `cmp.h`, `ssl.h`, `asn1.h`, `bio.h`, `x509.h`, etc.
-- `internal_include/crypto/buildinf.h` — build info (compiler, date, platform)
-- `providers/providers/fips/include/fips/fipsindicator.h` — FIPS indicator macros
-- Provider `.c` files generated from `.c.in` templates
-
-**Disabled algorithms:**
-| Category | Algorithms | Rationale |
-|----------|------------|-----------|
-| Legacy ciphers | RC5, RC2, IDEA, BF, CAST, SEED, Camellia | Deprecated, rarely used |
-| Legacy hashes | MDC2, Whirlpool, MD2, MD4, Blake2 | Deprecated or specialized |
-| Regional standards | SM2, SM3, SM4, ARIA, GOST | Chinese/Korean/Russian standards |
-| Post-quantum | LMS, ML-DSA, ML-KEM, SLH-DSA | Experimental, increases binary size |
-| Platform-specific | ec-nistp-64-gcc-128, padlockeng | Requires specific compiler/hardware |
-
-**Important:** Always run `make distclean` after extraction. Generated files must NOT be committed to `Vendor/openssl/` as they will conflict with subtree operations.
-
-### Project Structure
-
-```
-Sources/
-├── OpenSSL/           # Swift wrapper API
-├── libcrypto/         # OpenSSL crypto library (extracted + generated)
-│   ├── crypto/        # Core crypto sources
-│   ├── include/       # Public headers (openssl/*.h)
-│   ├── internal_include/  # Internal headers (crypto/*.h, internal/*.h)
-│   └── providers/     # Provider headers
-└── libssl/            # OpenSSL SSL/TLS library (extracted)
-    ├── src/           # SSL sources
-    └── include/       # SSL headers
-```
-
-## Security
-
-For information on reporting security vulnerabilities, see [SECURITY.md](SECURITY.md).
+| Tool | Minimum version |
+| --- | --- |
+| Swift | 6.1 |
+| Xcode | 16.3 |
+| macOS | 13 |
+| iOS / iPadOS | 16 |
+| tvOS | 16 |
+| watchOS | 9 |
+| visionOS | 1 |
+| Linux | Ubuntu 22.04+ (glibc) |
 
 ## Contributing
 
-Contributions are welcome. Please read the [21-DOT-DEV contributing guidelines](https://github.com/21-DOT-DEV/.github/blob/main/CONTRIBUTING.md) for branching and commit guidelines. For AI-assisted development guidance, see [AGENTS.md](AGENTS.md).
+Bug reports and pull requests are welcome. Start with:
+
+- [AGENTS.md](AGENTS.md) — project architecture, Swift-target boundaries, extraction flow.
+- [Vendor/AGENTS.md](Vendor/AGENTS.md) — OpenSSL subtree sync rules and the Configure regeneration recipe for minor/major bumps.
+- [21-DOT-DEV contributing guidelines](https://github.com/21-DOT-DEV/.github/blob/main/CONTRIBUTING.md) — branching and commit conventions.
+
+## Security
+
+For vulnerability reports, follow the private-disclosure process in [SECURITY.md](SECURITY.md). For shipped-today security caveats — MVP gaps, disabled algorithms, constant-time-comparison rules, and runtime CVE auditing — see the [Security Considerations](Sources/OpenSSL/OpenSSL.docc/SecurityConsiderations.md) guide.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
-
-OpenSSL is licensed under the Apache License 2.0.
+Released under the MIT License — see [LICENSE](LICENSE). OpenSSL itself is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
