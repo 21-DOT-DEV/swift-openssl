@@ -84,8 +84,8 @@ Theoretical compatibility note: [`swift-nio-ssl`](https://github.com/apple/swift
 
 The package-level "pre-1.0" warning applies differently to each product:
 
-- **`OpenSSL` (Swift API)**: Pre-1.0 per the README. The public surface — type names, function signatures, the set of ``OpenSSLError`` cases — may change across `0.y.z` releases. Pin `exact:` and audit each upgrade. The path to 1.0 hardens this surface.
-- **`libcrypto` and `libssl` (C bindings)**: Stable *relative to upstream OpenSSL 3.x's own C ABI*. If upstream OpenSSL 3.7 renames or removes a function, this package will pass that change through. If upstream keeps a function stable, so does this package. The version pin is in `subtree.yaml` (currently `openssl-3.6.2`); updating it follows the extraction recipe in the README.
+- **`OpenSSL` (Swift API)**: Pre-1.0 ([SemVer `0.y.z`](https://semver.org/#spec-item-4)). The public surface — type names, function signatures, the set of ``OpenSSLError`` cases — may change across `0.y.z` releases. Pin `exact:` and audit each upgrade. The path to 1.0 hardens this surface.
+- **`libcrypto` and `libssl` (C bindings)**: Stable *relative to upstream OpenSSL 3.x's own C ABI*. If upstream OpenSSL 3.7 renames or removes a function, this package will pass that change through. If upstream keeps a function stable, so does this package. The version pin is in `subtree.yaml` (currently `openssl-3.6.2`); updating it follows the extraction recipe in [`Vendor/AGENTS.md`](https://github.com/21-DOT-DEV/swift-openssl/blob/main/Vendor/AGENTS.md).
 
 Consumers of `libcrypto`/`libssl` (like `swift-tor`) inherit the OpenSSL 3.x stability contract directly. Consumers of `OpenSSL` (like an application importing the Swift API) inherit this package's own pre-1.0 policy on top.
 
