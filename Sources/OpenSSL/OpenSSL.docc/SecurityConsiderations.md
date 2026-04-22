@@ -8,11 +8,11 @@ Production-readiness caveats, MVP gaps, disabled algorithms, and runtime auditin
 
 ## Overview
 
-> Warning: From [README.md](https://github.com/21-DOT-DEV/swift-openssl/blob/main/README.md): *"This package has not yet implemented cryptographic test vectors. Do not use in production until proper verification is in place."* The sections below describe the specific gaps that motivate that caution and the compensating controls available today.
+> Warning: **Cryptographic test vectors have not been integrated into the test suite**, and this package is pre-1.0. Do not use it in production until proper verification is in place. The sections below describe the specific gaps that motivate that caution and the compensating controls available today.
 
 ### Pre-1.0 API Stability
 
-The package is pre-1.0 and uses [SemVer major version zero](https://semver.org/#spec-item-4), which reserves `0.y.z` as *"anything may change at any time."* The README states this plainly: *"The public API should not be considered stable and may change with any release. Pin a version using `exact:` to avoid unexpected breaking changes."*
+The package is pre-1.0 and uses [SemVer major version zero](https://semver.org/#spec-item-4), which reserves `0.y.z` as *"anything may change at any time."* The public API may change with any `0.y.z` release. Pin a version using `exact:` to avoid unexpected breaking changes.
 
 Practical consequences:
 
@@ -31,7 +31,7 @@ Shipping today:
 
 Not shipping today (future work):
 
-- **RSA signing and verification**. Requires the OpenSSL provider layer (`OSSL_PROVIDER_load`, `EVP_PKEY_sign_init`, `EVP_PKEY_verify_init`), which is not integrated. The README confirms: *"RSA signing and verification require the OpenSSL provider layer, which is not yet included. Key parsing is functional."*
+- **RSA signing and verification**. Requires the OpenSSL provider layer (`OSSL_PROVIDER_load`, `EVP_PKEY_sign_init`, `EVP_PKEY_verify_init`), which is not integrated. Key parsing via ``RSA/PrivateKey/init(pemRepresentation:)`` and ``RSA/PublicKey/init(pemRepresentation:)`` is functional and unaffected.
 - **TLS client or server context setup**. The `SSL` namespace exposes only ``SSL/versionString``. No session API, no context builder, no ALPN helpers.
 - **X.509 certificate chain validation**.
 - **HMAC, HKDF, AEAD, Ed25519, X25519, ECDH, ECDSA** Swift wrappers. `libcrypto` ships the C surface for these; no Swift API layer exists yet.
@@ -42,7 +42,7 @@ For algorithms Apple's frameworks already cover well — SHA-2, AES-GCM, ChaCha2
 
 ### Cryptographic Test Vectors
 
-The README `> [!CAUTION]` quoted above captures the core constraint: **cryptographic test vectors have not been integrated into the test suite.** This package's CI runs a small set of hand-picked digest and base64 vectors and negative tests on malformed PEM input; it does **not** run against [Project Wycheproof](https://github.com/google/wycheproof) or [NIST CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program) vector sets.
+The core constraint stated in the overview: **cryptographic test vectors have not been integrated into the test suite.** This package's CI runs a small set of hand-picked digest and base64 vectors and negative tests on malformed PEM input; it does **not** run against [Project Wycheproof](https://github.com/google/wycheproof) or [NIST CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program) vector sets.
 
 What this means for callers:
 
@@ -54,7 +54,7 @@ Production users needing FIPS 140-3 validation should not treat this package as 
 
 ### Disabled Algorithms
 
-Multiple algorithms are intentionally disabled via both `subtree.yaml` extraction excludes and `OPENSSL_NO_*` defines in the generated `configuration.h`. Attempting to use them — even via the raw `libcrypto` C bindings — will fail to link. The list matches the README's disabled-algorithms table:
+Multiple algorithms are intentionally disabled via both `subtree.yaml` extraction excludes and `OPENSSL_NO_*` defines in the generated `configuration.h`. Attempting to use them — even via the raw `libcrypto` C bindings — will fail to link:
 
 | Category | Algorithms | Rationale |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ Multiple algorithms are intentionally disabled via both `subtree.yaml` extractio
 | Post-quantum | LMS, ML-DSA, ML-KEM, SLH-DSA | Experimental; increases binary size significantly |
 | Platform-specific | `ec-nistp-64-gcc-128`, `padlockeng` | Require specific compiler or hardware |
 
-Re-enabling an algorithm requires updating both places (subtree excludes and the Configure flag set) and running the full extraction recipe documented in the README. Do not patch one without the other.
+Re-enabling an algorithm requires updating both places (subtree excludes and the Configure flag set) and running the full extraction recipe documented in [`Vendor/AGENTS.md`](https://github.com/21-DOT-DEV/swift-openssl/blob/main/Vendor/AGENTS.md). Do not patch one without the other.
 
 ### Constant-Time Comparison
 
