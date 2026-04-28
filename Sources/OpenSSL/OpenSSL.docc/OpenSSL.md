@@ -32,11 +32,23 @@ Beyond its direct API, this package ships the raw `libcrypto` and `libssl` C bin
 
 API positioning: `OpenSSL` complements [`swift-crypto`](https://github.com/apple/swift-crypto) and Apple's `CryptoKit`, not replaces them. Reach for `OpenSSL` when you need algorithms Apple's frameworks don't cover (full PKCS#1 padding, PEM I/O, legacy ciphers), when you need to interop with existing OpenSSL-based C/C++ code, or when you need to audit the exact OpenSSL version shipping with your binary.
 
+### Where to start
+
+New to `OpenSSL`? Begin with <doc:GettingStarted> for a task-oriented walkthrough of SHA-256 hashing, Base64URL encoding, RSA PEM parsing, and runtime version auditing. Picking between the idiomatic Swift API and the raw C binding products is covered in <doc:ChoosingLibcryptoVsOpenSSL>. Production-readiness caveats, disabled-algorithm rationale, and CVE-auditing guidance live in <doc:SecurityConsiderations>.
+
 ## Topics
+
+### Guides
+
+- <doc:GettingStarted>
+- <doc:ChoosingLibcryptoVsOpenSSL>
+
+### Concepts
+
+- <doc:SecurityConsiderations>
 
 ### Essentials
 
-- <doc:GettingStarted>
 - ``SSL``
 
 ### Hashing
@@ -57,11 +69,3 @@ API positioning: `OpenSSL` complements [`swift-crypto`](https://github.com/apple
 ### Errors
 
 - ``OpenSSLError``
-
-### Guides
-
-- <doc:ChoosingLibcryptoVsOpenSSL>
-
-### Concepts
-
-- <doc:SecurityConsiderations>

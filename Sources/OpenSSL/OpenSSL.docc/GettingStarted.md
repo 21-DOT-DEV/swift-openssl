@@ -100,8 +100,8 @@ targets: [
 
 This pattern is the intended way to bring a full OpenSSL runtime into a Swift package that has its own C sources (Tor's event-driven networking, for example) without bundling duplicate OpenSSL builds across the dependency graph. See <doc:ChoosingLibcryptoVsOpenSSL> for the full product-selection rationale.
 
-### Next Steps
+## See Also
 
-- <doc:SecurityConsiderations> — production-readiness caveats, disabled algorithms, constant-time guarantees, and CVE auditing.
-- <doc:ChoosingLibcryptoVsOpenSSL> — when to import the Swift API vs the raw C binding products.
-- ``OpenSSLError`` — the single failure surface for every throwing call in the module.
+- <doc:SecurityConsiderations>
+- <doc:ChoosingLibcryptoVsOpenSSL>
+- ``OpenSSLError``
