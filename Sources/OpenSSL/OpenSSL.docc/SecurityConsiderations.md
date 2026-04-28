@@ -109,3 +109,9 @@ Guidance:
 Security issues in this package are handled per [`SECURITY.md`](https://github.com/21-DOT-DEV/swift-openssl/blob/main/SECURITY.md) and the umbrella [21-DOT-DEV security policy](https://github.com/21-DOT-DEV/.github/blob/main/SECURITY.md). Do not open public GitHub issues for suspected vulnerabilities — follow the private disclosure process documented in those files.
 
 Vulnerabilities in upstream OpenSSL itself should be reported directly to [the OpenSSL project](https://openssl-library.org/policies/general-supporting-policies/vulnerabilities/); this package will pick them up via a subtree update once fixed upstream.
+
+## See Also
+
+- <doc:GettingStarted>
+- <doc:ChoosingLibcryptoVsOpenSSL>
+- ``SSL/versionString``

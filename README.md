@@ -6,6 +6,8 @@
 
 Modern Swift bindings for [OpenSSL 3.x](https://github.com/openssl/openssl) — a type-safe Swift 6.1 API for SHA-256, Base64URL, and RSA, plus raw `libcrypto` and `libssl` products other Swift packages can link for a full OpenSSL runtime.
 
+📚 [Documentation](https://docs.21.dev/documentation/openssl/)
+
 > [!CAUTION]
 > Pre-1.0 and cryptographic test vectors are not yet integrated. Do not use in production until proper verification is in place. See the [Security Considerations](Sources/OpenSSL/OpenSSL.docc/SecurityConsiderations.md) guide for the full MVP-gap list.
 
@@ -52,7 +54,15 @@ print(digest.hexString)
 // dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
 ```
 
-For **Base64URL encoding**, **RSA PEM parsing**, **runtime version auditing**, and the **product-selection guide** (`OpenSSL` vs `libcrypto` vs `libssl`), see the DocC catalog under [`Sources/OpenSSL/OpenSSL.docc/`](Sources/OpenSSL/OpenSSL.docc/) — start with [Getting Started](Sources/OpenSSL/OpenSSL.docc/GettingStarted.md). Every example there is backed by an executable SwiftPM snippet and a test, so nothing drifts from the code. Build the full hyperlinked archive locally with `swift package generate-documentation --target OpenSSL`.
+*→ Full API: [docs.21.dev/documentation/openssl/sha256](https://docs.21.dev/documentation/openssl/sha256)*
+
+For **Base64URL encoding**, **RSA PEM parsing**, **runtime version auditing**, and the **product-selection guide** (`OpenSSL` vs `libcrypto` vs `libssl`), explore the hosted documentation:
+
+- [Getting Started](https://docs.21.dev/documentation/openssl/gettingstarted) — task-oriented walkthrough of every shipping capability
+- [Choosing libcrypto vs OpenSSL](https://docs.21.dev/documentation/openssl/choosinglibcryptovsopenssl) — product-selection guide for direct-API vs raw-bindings consumers
+- [Security Considerations](https://docs.21.dev/documentation/openssl/securityconsiderations) — production-readiness caveats, disabled algorithms, CVE auditing
+
+Every example in the DocC catalog under [`Sources/OpenSSL/OpenSSL.docc/`](Sources/OpenSSL/OpenSSL.docc/) is backed by an executable SwiftPM snippet and a test, so nothing drifts from the code. Build the full hyperlinked archive locally with `swift package generate-documentation --target OpenSSL`.
 
 ## Requirements
 

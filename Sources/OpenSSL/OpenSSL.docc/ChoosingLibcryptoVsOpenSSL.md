@@ -94,3 +94,9 @@ Consumers of `libcrypto`/`libssl` (like `swift-tor`) inherit the OpenSSL 3.x sta
 A single target can import any combination of `OpenSSL`, `libcrypto`, and `libssl` without runtime duplication. Because all three resolve to the same statically-linked OpenSSL, there is exactly one copy of the global `CRYPTO_*` state machinery in the final binary.
 
 Transitive consumers behave the same way. An application that depends on `swift-tor` (which pulls in `libcrypto` and `libssl` from this package) and separately imports `OpenSSL` to hash a payload will see one OpenSSL runtime, not two. The ``SSL/versionString`` reported from the Swift side is identical to the version `libtor` is calling internally — which makes runtime CVE auditing (see <doc:SecurityConsiderations>) sound across the whole graph.
+
+## See Also
+
+- <doc:GettingStarted>
+- <doc:SecurityConsiderations>
+- ``OpenSSL``
