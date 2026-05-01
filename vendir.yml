@@ -1,0 +1,263 @@
+# Managed by vendir - https://carvel.dev/vendir
+#
+# Declarative source-vendoring configuration. Replaces the legacy `subtree.yaml`
+# + `git subtree` workflow. Run `vendir sync` to fetch upstream and populate
+# Sources/.
+#
+# Architecture: 2 top-level directories (Sources/libssl/src, Sources/libcrypto),
+# with libcrypto containing 4 named sub-contents to translate the original
+# subtree extractions. Each `contents[].path` must be unique within its
+# directory and none can be `.` when there are multiple contents items.
+#
+# Configure-generated files (configuration.h, buildinf.h, *.h from *.h.in,
+# *.c from *.c.in) are NOT managed by vendir. They live as committed artifacts
+# under Sources/lib*/ and are listed in `scripts/configure-generated-files.txt`.
+# Re-derive them via `scripts/regenerate-configure.sh` when upstream `.h.in` or
+# `.c.in` templates change.
+#
+# Each `contents` entry uses `legalPaths: []` to suppress vendir's default
+# auto-inclusion of LICENSE/COPYING/NOTICE files.
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.45.0
+
+# The shared upstream git source is defined once via a YAML anchor (`&openssl`)
+# on the first `contents[].git:` below, then aliased (`*openssl`) by every
+# subsequent block. Update URL/ref in one place.
+# - `depth: 1` does a shallow fetch of just the pinned tag (fast + small).
+# - `skipInitSubmodules: true` skips submodule init (we don't vendor any).
+directories:
+
+# === libssl source files (was subtree.yaml:11-23, "Block 1") ===
+- path: Sources/libssl/src
+  contents:
+  - path: .
+    git: &openssl
+      url: https://github.com/openssl/openssl
+      ref: openssl-3.6.2
+      depth: 1
+      skipInitSubmodules: true
+    includePaths:
+    - ssl/*.c
+    - ssl/*.h
+    - ssl/statem/*.c
+    - ssl/statem/*.h
+    - ssl/record/*.c
+    - ssl/record/*.h
+    - ssl/record/methods/*.c
+    - ssl/record/methods/*.h
+    - ssl/rio/*.c
+    - ssl/rio/*.h
+    - ssl/quic/*.c
+    - ssl/quic/*.h
+    excludePaths:
+    - "**/*_test*"
+    - "**/test_*"
+    - "**/ktls_meth.c"
+    - "**/ssl_rsa_legacy.c"
+    legalPaths: []
+
+# === libcrypto: 4 named sub-contents (Blocks 2, 3, 4+5, 6) under one directory ===
+- path: Sources/libcrypto
+  contents:
+
+  # --- Block 2: public headers (was subtree.yaml:24-27) ---
+  # `newRootPath: include` strips upstream's leading `include/`, then
+  # `contents[].path: include` re-roots back. Final: Sources/libcrypto/include/openssl/*.h
+  - path: include
+    git: *openssl
+    includePaths:
+    - include/openssl/**/*.h
+    excludePaths:
+    - "**/*LOGUE.H"
+    newRootPath: include
+    legalPaths: []
+
+  # --- Block 3: internal headers (was subtree.yaml:28-33) ---
+  # No newRootPath: full upstream path preserved. Final paths:
+  #   Sources/libcrypto/internal_include/include/internal/*.h
+  #   Sources/libcrypto/internal_include/include/crypto/*.{h,def}
+  - path: internal_include
+    git: *openssl
+    includePaths:
+    - include/internal/**/*.h
+    - include/crypto/**/*.h
+    - include/crypto/**/*.def
+    excludePaths:
+    - "**/*LOGUE.H"
+    legalPaths: []
+
+  # --- Blocks 4 + 5 MERGED: providers (was subtree.yaml:34-94) ---
+  # Final paths: Sources/libcrypto/providers/providers/* (the doubled providers/
+  # is from full-relative-path preservation of upstream `providers/...`).
+  # `**/fips/**` exclude refined to scope to fips implementations only,
+  # preserving block 4's `providers/fips/include/**/*.h` headers.
+  - path: providers
+    git: *openssl
+    includePaths:
+    # Block 4: provider headers
+    - providers/common/include/**/*.h
+    - providers/implementations/include/**/*.h
+    - providers/fips/include/**/*.h
+    # Block 5: provider sources
+    - providers/*.c
+    - providers/*.inc
+    - providers/common/**/*.c
+    - providers/common/**/*.h
+    - providers/implementations/**/*.c
+    - providers/implementations/**/*.h
+    - providers/implementations/**/*.inc
+    excludePaths:
+    # REFINED from `**/fips/**` to preserve block 4 fips headers
+    - providers/fips/*.c
+    - providers/fips/*.inc
+    - providers/fips/build.info
+    # All other block 5 excludes verbatim
+    - "**/securitycheck_fips.c"
+    - "**/fips_crng_test.c"
+    - "**/legacyprov.c"
+    - "**/*_test*"
+    - "**/rand_vxworks.c"
+    - "**/rand_vms.c"
+    - "**/rand_win.c"
+    - "**/winstore_store.c"
+    - "**/blake2_mac_impl.c"
+    - "**/lms_*"
+    - "**/decode_lmsxdr2key.c"
+    # NOTE: scoped to .c/.inc so PQC codec headers under
+    # providers/implementations/include/prov/ (ml_dsa_codecs.h,
+    # ml_kem_codecs.h, mlx_kem.h) survive. Block 4 originally had no excludes;
+    # the merge of blocks 4+5 makes these source-only filters double as header
+    # filters unless we restrict by extension.
+    - "**/ml_dsa_*.c"
+    - "**/ml_dsa_*.inc"
+    - "**/ml_kem_*.c"
+    - "**/ml_kem_*.inc"
+    - "**/slh_dsa_*.c"
+    - "**/slh_dsa_*.inc"
+    - "**/mlx_*.c"
+    - "**/mlx_*.inc"
+    - "**/der_lms*"
+    - "**/der_ml_dsa*"
+    - "**/der_slh_dsa*"
+    - "**/sm2_*"
+    - "**/sm3_*"
+    - "**/sm4_*"
+    - "**/cipher_sm4*"
+    - "**/der_sm2*"
+    - "**/aria_*"
+    - "**/cipher_aria*"
+    - "**/cipher_seed*"
+    - "**/cipher_camellia*"
+    - "**/cipher_cast5*"
+    - "**/cipher_bf*"
+    - "**/cipher_blowfish*"
+    - "**/cipher_idea*"
+    - "**/cipher_rc2*"
+    - "**/cipher_rc4*"
+    - "**/cipher_rc5*"
+    - "**/blake2_prov.c"
+    - "**/blake2b_prov.c"
+    - "**/blake2s_prov.c"
+    - "**/blake2b_mac.c"
+    - "**/blake2s_mac.c"
+    - "**/md2_prov.c"
+    - "**/md4_prov.c"
+    - "**/mdc2_prov.c"
+    - "**/wp_prov.c"
+    - "**/rmd_prov.c"
+    - "**/seed_src_jitter.c"
+    legalPaths: []
+
+  # --- Block 6: crypto sources (was subtree.yaml:95-184) ---
+  # Final path: Sources/libcrypto/src/crypto/*
+  - path: src
+    git: *openssl
+    includePaths:
+    - crypto/**/*.c
+    - crypto/**/*.h
+    excludePaths:
+    - "**/*.S"
+    - "**/*.s"
+    - "**/perlasm/**"
+    - "**/asm/**"
+    - "**/aes_x86core.c"
+    - "**/rsaz_exp*.c"
+    - "**/ecp_nistz*.c"
+    - "**/ecp_s390x*.c"
+    - "**/ecx_s390x.c"
+    - "**/ecp_sm2p256*.c"
+    - "**/bn_s390x.c"
+    - "**/bn_ppc.c"
+    - "**/bn_sparc.c"
+    - "**/hmac_s390x.c"
+    - "**/armcap.c"
+    - "**/ppccap.c"
+    - "**/sparcv9cap.c"
+    - "**/s390xcap.c"
+    - "**/riscvcap.c"
+    - "**/loongarchcap.c"
+    - "**/poly1305_ieee754.c"
+    - "**/poly1305_base2_44.c"
+    - "**/poly1305_ppc.c"
+    - "**/sha_ppc.c"
+    - "**/sha_riscv.c"
+    - "**/sm3_riscv.c"
+    - "**/chacha_ppc.c"
+    - "**/chacha_riscv.c"
+    - "**/ecp_ppc.c"
+    - "**/md5_riscv.c"
+    - "**/LPdir_win*.c"
+    - "**/LPdir_vms.c"
+    - "**/LPdir_wince.c"
+    - "**/LPdir_nyi.c"
+    - "**/dllmain.c"
+    - "**/uplink*.c"
+    - "**/rand_vxworks*"
+    - "**/rand_egd*"
+    - "**/*_test.c"
+    - "**/*_test.h"
+    - "**/test_*.c"
+    - "**/test_*.h"
+    - "**/bench*"
+    - "**/*acvp*"
+    - "**/rc5/**"
+    - "**/rc2/**"
+    - "**/idea/**"
+    - "**/bf/**"
+    - "**/cast/**"
+    - "**/seed/**"
+    - "**/camellia/**"
+    - "**/mdc2/**"
+    - "**/whrlpool/**"
+    - "**/md2/**"
+    - "**/md4/**"
+    - "**/sm2/**"
+    - "**/sm3/**"
+    - "**/sm4/**"
+    - "**/aria/**"
+    - "**/evp/legacy_md2.c"
+    - "**/evp/legacy_md4.c"
+    - "**/evp/legacy_mdc2.c"
+    - "**/evp/legacy_wp.c"
+    - "**/evp/e_seed.c"
+    - "**/evp/e_camellia.c"
+    - "**/evp/e_bf.c"
+    - "**/evp/e_idea.c"
+    - "**/evp/e_rc2.c"
+    - "**/evp/e_cast.c"
+    - "**/evp/e_rc5.c"
+    - "**/blake2/**"
+    - "**/evp/legacy_blake2.c"
+    - "**/evp/e_sm4.c"
+    - "**/evp/e_aria.c"
+    - "**/lms/**"
+    - "**/ml_dsa/**"
+    - "**/ml_kem/**"
+    - "**/slh_dsa/**"
+    - "**/ecp_nistp224.c"
+    - "**/ecp_nistp256.c"
+    - "**/ecp_nistp384.c"
+    - "**/ecp_nistp521.c"
+    - "**/ecp_nistputil.c"
+    legalPaths: []

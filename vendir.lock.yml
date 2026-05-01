@@ -1,0 +1,37 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: Prepare for release of 3.6.2...
+      sha: fe686e15d84334b284f883118ed92f64b409b3aa
+      tags:
+      - openssl-3.6.2
+    path: .
+  path: Sources/libssl/src
+- contents:
+  - git:
+      commitTitle: Prepare for release of 3.6.2...
+      sha: fe686e15d84334b284f883118ed92f64b409b3aa
+      tags:
+      - openssl-3.6.2
+    path: include
+  - git:
+      commitTitle: Prepare for release of 3.6.2...
+      sha: fe686e15d84334b284f883118ed92f64b409b3aa
+      tags:
+      - openssl-3.6.2
+    path: internal_include
+  - git:
+      commitTitle: Prepare for release of 3.6.2...
+      sha: fe686e15d84334b284f883118ed92f64b409b3aa
+      tags:
+      - openssl-3.6.2
+    path: providers
+  - git:
+      commitTitle: Prepare for release of 3.6.2...
+      sha: fe686e15d84334b284f883118ed92f64b409b3aa
+      tags:
+      - openssl-3.6.2
+    path: src
+  path: Sources/libcrypto
+kind: LockConfig

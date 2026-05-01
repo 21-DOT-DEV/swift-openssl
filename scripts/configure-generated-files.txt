@@ -1,0 +1,126 @@
+# Configure-generated files (NOT in upstream openssl/openssl tree).
+#
+# These files are produced by `./Configure` + `make build_all_generated` against
+# upstream OpenSSL with the project's algorithm-disable flag set. They live as
+# committed artifacts under Sources/ and MUST be preserved across `vendir sync`
+# operations (vendir would otherwise wipe Sources/ paths it doesn't write to).
+#
+# Regeneration: `scripts/regenerate-configure.sh` (when upstream `.h.in` /
+# `.c.in` templates change between bumps).
+#
+# Captured: 2026-05-01 from openssl-3.6.2 via `subtree extract --clean` survivors
+# minus .DS_Store / Placeholder.{h,c}. 100 files.
+#
+# Format: one path per line, relative to repo root. Lines starting with `#` are
+# comments. Blank lines ignored.
+
+# === Generated public headers (from include/openssl/*.h.in templates) ===
+Sources/libcrypto/include/openssl/asn1.h
+Sources/libcrypto/include/openssl/asn1t.h
+Sources/libcrypto/include/openssl/bio.h
+Sources/libcrypto/include/openssl/cmp.h
+Sources/libcrypto/include/openssl/cms.h
+Sources/libcrypto/include/openssl/comp.h
+Sources/libcrypto/include/openssl/conf.h
+Sources/libcrypto/include/openssl/configuration.h
+Sources/libcrypto/include/openssl/core_names.h
+Sources/libcrypto/include/openssl/crmf.h
+Sources/libcrypto/include/openssl/crypto.h
+Sources/libcrypto/include/openssl/ct.h
+Sources/libcrypto/include/openssl/err.h
+Sources/libcrypto/include/openssl/ess.h
+Sources/libcrypto/include/openssl/fipskey.h
+Sources/libcrypto/include/openssl/lhash.h
+Sources/libcrypto/include/openssl/ocsp.h
+Sources/libcrypto/include/openssl/opensslv.h
+Sources/libcrypto/include/openssl/pkcs12.h
+Sources/libcrypto/include/openssl/pkcs7.h
+Sources/libcrypto/include/openssl/safestack.h
+Sources/libcrypto/include/openssl/srp.h
+Sources/libcrypto/include/openssl/ssl.h
+Sources/libcrypto/include/openssl/ui.h
+Sources/libcrypto/include/openssl/x509.h
+Sources/libcrypto/include/openssl/x509_acert.h
+Sources/libcrypto/include/openssl/x509_vfy.h
+Sources/libcrypto/include/openssl/x509v3.h
+
+# === Generated build info ===
+Sources/libcrypto/src/crypto/buildinf.h
+Sources/libcrypto/internal_include/include/crypto/bn_conf.h
+Sources/libcrypto/internal_include/include/crypto/dso_conf.h
+
+# === Generated provider implementation .c files (from .c.in templates) ===
+# Captured under Sources/libcrypto/providers/providers/implementations/...
+# (the doubled `providers/providers/` is from `to: Sources/libcrypto/providers/`
+# plus full-relative-path preservation of upstream `providers/...`)
+Sources/libcrypto/providers/providers/common/der/der_digests_gen.c
+Sources/libcrypto/providers/providers/common/der/der_dsa_gen.c
+Sources/libcrypto/providers/providers/common/der/der_ec_gen.c
+Sources/libcrypto/providers/providers/common/der/der_ecx_gen.c
+Sources/libcrypto/providers/providers/common/der/der_hkdf_gen.c
+Sources/libcrypto/providers/providers/common/der/der_rsa_gen.c
+Sources/libcrypto/providers/providers/common/der/der_wrap_gen.c
+Sources/libcrypto/providers/providers/common/include/prov/der_digests.h
+Sources/libcrypto/providers/providers/common/include/prov/der_dsa.h
+Sources/libcrypto/providers/providers/common/include/prov/der_ec.h
+Sources/libcrypto/providers/providers/common/include/prov/der_ecx.h
+Sources/libcrypto/providers/providers/common/include/prov/der_hkdf.h
+Sources/libcrypto/providers/providers/common/include/prov/der_rsa.h
+Sources/libcrypto/providers/providers/common/include/prov/der_wrap.h
+Sources/libcrypto/providers/providers/implementations/asymciphers/rsa_enc.c
+Sources/libcrypto/providers/providers/implementations/ciphers/cipher_chacha20_poly1305.c
+Sources/libcrypto/providers/providers/implementations/ciphers/ciphercommon.c
+Sources/libcrypto/providers/providers/implementations/ciphers/ciphercommon_ccm.c
+Sources/libcrypto/providers/providers/implementations/ciphers/ciphercommon_gcm.c
+Sources/libcrypto/providers/providers/implementations/digests/digestcommon.c
+Sources/libcrypto/providers/providers/implementations/digests/sha3_prov.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/decode_der2key.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/decode_epki2pki.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/decode_pem2der.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/decode_pvk2key.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/decode_spki2typespki.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/encode_key2any.c
+Sources/libcrypto/providers/providers/implementations/encode_decode/encode_key2ms.c
+Sources/libcrypto/providers/providers/implementations/exchange/dh_exch.c
+Sources/libcrypto/providers/providers/implementations/exchange/ecdh_exch.c
+Sources/libcrypto/providers/providers/implementations/exchange/ecx_exch.c
+Sources/libcrypto/providers/providers/implementations/include/prov/blake2_params.inc
+Sources/libcrypto/providers/providers/implementations/kdfs/argon2.c
+Sources/libcrypto/providers/providers/implementations/kdfs/hkdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/hmacdrbg_kdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/kbkdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/krb5kdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/pbkdf1.c
+Sources/libcrypto/providers/providers/implementations/kdfs/pbkdf2.c
+Sources/libcrypto/providers/providers/implementations/kdfs/pkcs12kdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/pvkkdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/scrypt.c
+Sources/libcrypto/providers/providers/implementations/kdfs/sshkdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/sskdf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/tls1_prf.c
+Sources/libcrypto/providers/providers/implementations/kdfs/x942kdf.c
+Sources/libcrypto/providers/providers/implementations/kem/ec_kem.c
+Sources/libcrypto/providers/providers/implementations/kem/ecx_kem.c
+Sources/libcrypto/providers/providers/implementations/kem/rsa_kem.c
+Sources/libcrypto/providers/providers/implementations/keymgmt/ecx_kmgmt.c
+Sources/libcrypto/providers/providers/implementations/keymgmt/template_kmgmt.c
+Sources/libcrypto/providers/providers/implementations/macs/cmac_prov.c
+Sources/libcrypto/providers/providers/implementations/macs/gmac_prov.c
+Sources/libcrypto/providers/providers/implementations/macs/hmac_prov.c
+Sources/libcrypto/providers/providers/implementations/macs/kmac_prov.c
+Sources/libcrypto/providers/providers/implementations/macs/poly1305_prov.c
+Sources/libcrypto/providers/providers/implementations/macs/siphash_prov.c
+Sources/libcrypto/providers/providers/implementations/rands/drbg_ctr.c
+Sources/libcrypto/providers/providers/implementations/rands/drbg_hash.c
+Sources/libcrypto/providers/providers/implementations/rands/drbg_hmac.c
+Sources/libcrypto/providers/providers/implementations/rands/seed_src.c
+Sources/libcrypto/providers/providers/implementations/rands/test_rng.c
+Sources/libcrypto/providers/providers/implementations/signature/dsa_sig.c
+Sources/libcrypto/providers/providers/implementations/signature/ecdsa_sig.c
+Sources/libcrypto/providers/providers/implementations/signature/eddsa_sig.c
+Sources/libcrypto/providers/providers/implementations/signature/rsa_sig.c
+Sources/libcrypto/providers/providers/implementations/skeymgmt/generic.c
+Sources/libcrypto/providers/providers/implementations/storemgmt/file_store.c
+Sources/libcrypto/providers/providers/implementations/storemgmt/file_store_any2obj.c
+
+# === Generated FIPS indicator header ===
