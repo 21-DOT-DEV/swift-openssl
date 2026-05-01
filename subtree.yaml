@@ -6,6 +6,7 @@ subtrees:
   commit: f800a53185a76d633d469607937c3c55383f0fff
   tag: openssl-3.6.2
   squash: true
+  stripGitlinks: true
   extractions:
   - from:
     - ssl/*.{c,h}
