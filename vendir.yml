@@ -1,0 +1,278 @@
+# Managed by vendir — https://carvel.dev/vendir
+#
+# Declarative source-vendoring config. Replaces `subtree.yaml` + the legacy
+# `subtree` CLI workflow.
+#
+# Sync is a two-step process driven by `swift run VendirSync`:
+#   1. PreSync clones/fetches openssl-3.6.2 into `.vendir-cache/openssl/`
+#      (a single shallow checkout, gitignored, written once per ref bump).
+#   2. `vendir sync` reads this file and copies filtered subsets of the
+#      cache into Sources/libssl/src/ and Sources/libcrypto/.
+#   3. VendirSync restores files listed in `scripts/vendir-preserve.txt`
+#      via `git checkout HEAD --` (configure-generated artifacts and
+#      Placeholder stubs that vendir would otherwise wipe).
+#
+# The cache + sidecar provenance approach (vs vendir's native `git:` source)
+# trades `vendir.lock.yml`'s upstream-sha tracking for one-clone-per-bump
+# instead of one-clone-per-contents. Upstream provenance is recorded in
+# `scripts/vendir-upstream.lock.json` by PreSync after every fetch.
+#
+# Path semantics: vendir preserves each upstream-relative path under its
+# `contents[].path`. So upstream `ssl/ssl_lib.c` lands at
+# `Sources/libssl/src/ssl/ssl_lib.c`. The doubled `providers/providers/`
+# in libcrypto is intentional — `Package.swift`'s `headerSearchPath`
+# entries already reference the doubled layout.
+#
+# Algorithm-disable lists below are double-encoded with the
+# `OPENSSL_NO_*` defines in `Sources/libcrypto/include/openssl/configuration.h`.
+# Any algorithm change requires updating both.
+
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.45.0
+
+directories:
+
+# === Block 1: libssl sources (was subtree.yaml block 1) ===
+# Upstream `ssl/**/*.{c,h}` → `Sources/libssl/src/ssl/**/*.{c,h}`.
+- path: Sources/libssl/src
+  contents:
+  - path: .
+    directory:
+      path: .vendir-cache/openssl
+    includePaths:
+    - ssl/*.c
+    - ssl/*.h
+    - ssl/statem/*.c
+    - ssl/statem/*.h
+    - ssl/record/*.c
+    - ssl/record/*.h
+    - ssl/record/methods/*.c
+    - ssl/record/methods/*.h
+    - ssl/rio/*.c
+    - ssl/rio/*.h
+    - ssl/quic/*.c
+    - ssl/quic/*.h
+    excludePaths:
+    - "**/*_test*"
+    - "**/test_*"
+    - "**/ktls_meth.c"
+    - "**/ssl_rsa_legacy.c"
+    legalPaths: []
+
+# === libcrypto: 4 named sub-contents under one directory (blocks 2, 3, 4+5, 6) ===
+- path: Sources/libcrypto
+  contents:
+
+  # --- Block 2: public headers (was subtree.yaml block 2) ---
+  # Upstream `include/openssl/foo.h` → `Sources/libcrypto/include/openssl/foo.h`.
+  # `newRootPath: include` strips the upstream `include/` prefix; `path: include`
+  # re-roots back so the final layout matches subtree's.
+  - path: include
+    directory:
+      path: .vendir-cache/openssl
+    includePaths:
+    - include/openssl/**/*.h
+    excludePaths:
+    - "**/*LOGUE.H"
+    newRootPath: include
+    legalPaths: []
+
+  # --- Block 3: internal headers (was subtree.yaml block 3) ---
+  # Upstream `include/internal/foo.h` → `Sources/libcrypto/internal_include/include/internal/foo.h`.
+  # No `newRootPath`: the doubled `internal_include/include/` is what subtree produced
+  # and what `Package.swift`'s headerSearchPath entries reference.
+  - path: internal_include
+    directory:
+      path: .vendir-cache/openssl
+    includePaths:
+    - include/internal/**/*.h
+    - include/crypto/**/*.h
+    - include/crypto/**/*.def
+    excludePaths:
+    - "**/*LOGUE.H"
+    legalPaths: []
+
+  # --- Blocks 4 + 5 MERGED: provider headers + sources (was subtree.yaml blocks 4 + 5) ---
+  # Upstream `providers/common/foo.c` → `Sources/libcrypto/providers/providers/common/foo.c`.
+  # The doubled `providers/providers/` is intentional and matches subtree's layout.
+  #
+  # NOTE on PQC excludes: subtree.yaml block 5 used patterns like `**/ml_dsa_*` that
+  # match both `.c` (intended) and `.h` (unintended). When blocks 4 + 5 merge, those
+  # broad patterns would silently drop block 4's PQC codec headers
+  # (`ml_dsa_codecs.h`, `ml_kem_codecs.h`, `mlx_kem.h`). Patterns below are scoped
+  # by extension to preserve the headers. See playbook §3.6.
+  - path: providers
+    directory:
+      path: .vendir-cache/openssl
+    includePaths:
+    # Block 4: provider headers
+    - providers/common/include/**/*.h
+    - providers/implementations/include/**/*.h
+    - providers/fips/include/**/*.h
+    # Block 5: provider sources
+    - providers/*.c
+    - providers/*.inc
+    - providers/common/**/*.c
+    - providers/common/**/*.h
+    - providers/implementations/**/*.c
+    - providers/implementations/**/*.h
+    - providers/implementations/**/*.inc
+    excludePaths:
+    # subtree.yaml block 5's `**/fips/**` would have wiped block 4's fips include
+    # headers when the blocks merged. Narrowed to leave fips include/ alone.
+    - providers/fips/*.c
+    - providers/fips/*.inc
+    - providers/fips/build.info
+    # Verbatim from subtree.yaml block 5:
+    - "**/securitycheck_fips.c"
+    - "**/fips_crng_test.c"
+    - "**/legacyprov.c"
+    - "**/*_test*"
+    - "**/rand_vxworks.c"
+    - "**/rand_vms.c"
+    - "**/rand_win.c"
+    - "**/winstore_store.c"
+    - "**/blake2_mac_impl.c"
+    - "**/lms_*"
+    - "**/decode_lmsxdr2key.c"
+    # Extension-scoped to preserve PQC codec headers (see §3.6 note above):
+    - "**/ml_dsa_*.c"
+    - "**/ml_dsa_*.inc"
+    - "**/ml_kem_*.c"
+    - "**/ml_kem_*.inc"
+    - "**/slh_dsa_*.c"
+    - "**/slh_dsa_*.inc"
+    - "**/mlx_*.c"
+    - "**/mlx_*.inc"
+    - "**/der_lms*"
+    - "**/der_ml_dsa*"
+    - "**/der_slh_dsa*"
+    - "**/sm2_*"
+    - "**/sm3_*"
+    - "**/sm4_*"
+    - "**/cipher_sm4*"
+    - "**/der_sm2*"
+    - "**/aria_*"
+    - "**/cipher_aria*"
+    - "**/cipher_seed*"
+    - "**/cipher_camellia*"
+    - "**/cipher_cast5*"
+    - "**/cipher_bf*"
+    - "**/cipher_blowfish*"
+    - "**/cipher_idea*"
+    - "**/cipher_rc2*"
+    - "**/cipher_rc4*"
+    - "**/cipher_rc5*"
+    - "**/blake2_prov.c"
+    - "**/blake2b_prov.c"
+    - "**/blake2s_prov.c"
+    - "**/blake2b_mac.c"
+    - "**/blake2s_mac.c"
+    - "**/md2_prov.c"
+    - "**/md4_prov.c"
+    - "**/mdc2_prov.c"
+    - "**/wp_prov.c"
+    - "**/rmd_prov.c"
+    - "**/seed_src_jitter.c"
+    legalPaths: []
+
+  # --- Block 6: crypto sources (was subtree.yaml block 6) ---
+  # Upstream `crypto/aes/aes_core.c` → `Sources/libcrypto/src/crypto/aes/aes_core.c`.
+  - path: src
+    directory:
+      path: .vendir-cache/openssl
+    includePaths:
+    - crypto/**/*.c
+    - crypto/**/*.h
+    excludePaths:
+    # Assembly (no-asm build):
+    - "**/*.S"
+    - "**/*.s"
+    - "**/perlasm/**"
+    - "**/asm/**"
+    # Architecture-specific optimizations (covered by no-asm fallbacks):
+    - "**/aes_x86core.c"
+    - "**/rsaz_exp*.c"
+    - "**/ecp_nistz*.c"
+    - "**/ecp_s390x*.c"
+    - "**/ecx_s390x.c"
+    - "**/ecp_sm2p256*.c"
+    - "**/bn_s390x.c"
+    - "**/bn_ppc.c"
+    - "**/bn_sparc.c"
+    - "**/hmac_s390x.c"
+    - "**/armcap.c"
+    - "**/ppccap.c"
+    - "**/sparcv9cap.c"
+    - "**/s390xcap.c"
+    - "**/riscvcap.c"
+    - "**/loongarchcap.c"
+    - "**/poly1305_ieee754.c"
+    - "**/poly1305_base2_44.c"
+    - "**/poly1305_ppc.c"
+    - "**/sha_ppc.c"
+    - "**/sha_riscv.c"
+    - "**/sm3_riscv.c"
+    - "**/chacha_ppc.c"
+    - "**/chacha_riscv.c"
+    - "**/ecp_ppc.c"
+    - "**/md5_riscv.c"
+    # Platform-specific (Apple/Linux only):
+    - "**/LPdir_win*.c"
+    - "**/LPdir_vms.c"
+    - "**/LPdir_wince.c"
+    - "**/LPdir_nyi.c"
+    - "**/dllmain.c"
+    - "**/uplink*.c"
+    - "**/rand_vxworks*"
+    - "**/rand_egd*"
+    # Tests / benchmarks / ACVP:
+    - "**/*_test.c"
+    - "**/*_test.h"
+    - "**/test_*.c"
+    - "**/test_*.h"
+    - "**/bench*"
+    - "**/*acvp*"
+    # Disabled algorithms (mirror configuration.h's OPENSSL_NO_* set):
+    - "**/rc5/**"
+    - "**/rc2/**"
+    - "**/idea/**"
+    - "**/bf/**"
+    - "**/cast/**"
+    - "**/seed/**"
+    - "**/camellia/**"
+    - "**/mdc2/**"
+    - "**/whrlpool/**"
+    - "**/md2/**"
+    - "**/md4/**"
+    - "**/sm2/**"
+    - "**/sm3/**"
+    - "**/sm4/**"
+    - "**/aria/**"
+    - "**/evp/legacy_md2.c"
+    - "**/evp/legacy_md4.c"
+    - "**/evp/legacy_mdc2.c"
+    - "**/evp/legacy_wp.c"
+    - "**/evp/e_seed.c"
+    - "**/evp/e_camellia.c"
+    - "**/evp/e_bf.c"
+    - "**/evp/e_idea.c"
+    - "**/evp/e_rc2.c"
+    - "**/evp/e_cast.c"
+    - "**/evp/e_rc5.c"
+    - "**/blake2/**"
+    - "**/evp/legacy_blake2.c"
+    - "**/evp/e_sm4.c"
+    - "**/evp/e_aria.c"
+    - "**/lms/**"
+    - "**/ml_dsa/**"
+    - "**/ml_kem/**"
+    - "**/slh_dsa/**"
+    # EC NIST curve assembly fallbacks (we use generic implementations):
+    - "**/ecp_nistp224.c"
+    - "**/ecp_nistp256.c"
+    - "**/ecp_nistp384.c"
+    - "**/ecp_nistp521.c"
+    - "**/ecp_nistputil.c"
+    legalPaths: []
