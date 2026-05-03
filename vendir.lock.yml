@@ -1,0 +1,17 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - directory: {}
+    path: .
+  path: Sources/libssl/src
+- contents:
+  - directory: {}
+    path: include
+  - directory: {}
+    path: internal_include
+  - directory: {}
+    path: providers
+  - directory: {}
+    path: src
+  path: Sources/libcrypto
+kind: LockConfig

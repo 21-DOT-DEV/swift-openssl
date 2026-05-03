@@ -71,7 +71,7 @@ let package = Package(
             name: "OpenSSLTests",
             dependencies: ["OpenSSL"]
         )
-    ],
+    ] + Target.developmentTargets,
     swiftLanguageModes: [.v6],
     cLanguageStandard: .c99
 )
@@ -86,6 +86,30 @@ extension Package.Dependency {
         return [
             .package(url: "https://github.com/21-DOT-DEV/swift-plugin-subtree.git", exact: "0.0.15"),
             .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.6")
+        ]
+    }
+}
+
+extension Target {
+    /// Development-only targets, excluded at tagged releases.
+    ///
+    /// `VendirSync` orchestrates the upstream prefetch + `vendir sync` + preserved-file
+    /// restore that replaces the legacy subtree workflow. `VendirSyncLib` holds the
+    /// pure-logic portion (Codable schema, path rewrites, manifest parsing) so it's
+    /// unit-testable without invoking external processes. Excluded at tagged releases
+    /// so consumers aren't forced to compile any of it.
+    static var developmentTargets: [Target] {
+        guard Context.gitInformation?.currentTag == nil else { return [] }
+        return [
+            .target(name: "VendirSyncLib"),
+            .executableTarget(
+                name: "VendirSync",
+                dependencies: ["VendirSyncLib"]
+            ),
+            .testTarget(
+                name: "VendirSyncLibTests",
+                dependencies: ["VendirSyncLib"]
+            )
         ]
     }
 }

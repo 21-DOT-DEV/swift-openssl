@@ -1,0 +1,9 @@
+{
+  "committedAt" : "2026-04-07T12:17:57Z",
+  "committedAtEpoch" : 1775564277,
+  "fetchedAt" : "2026-05-01T00:00:00Z",
+  "lastRegenSha" : "fe686e15d84334b284f883118ed92f64b409b3aa",
+  "ref" : "openssl-3.6.2",
+  "sha" : "fe686e15d84334b284f883118ed92f64b409b3aa",
+  "url" : "https:\/\/github.com\/openssl\/openssl"
+}

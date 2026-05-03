@@ -1,5 +1,5 @@
 {
-  "originHash" : "adc2decb32824c9132ec688618466c750143aa848ac4f6135251f044d582102f",
+  "originHash" : "b178ed9e1dc01ff64827affcc7007e8592717087719da1fe449ecd29e8d60a2b",
   "pins" : [
     {
       "identity" : "swift-artifact-parser",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-docc-plugin",
       "state" : {
-        "revision" : "e977f65879f82b375a044c8837597f690c067da6",
-        "version" : "1.4.6"
+        "revision" : "647c708be89f834fa6a6d4945442793a77ddf5b6",
+        "version" : "1.5.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/21-DOT-DEV/swift-plugin-subtree.git",
       "state" : {
-        "revision" : "0986f4f22d7a58e3f9e6798e67491e8367653d2b",
-        "version" : "0.0.13"
+        "revision" : "f5e8ef191c7f36e5bc876b713f78fab2fc6303f3",
+        "version" : "0.0.15"
       }
     }
   ],
