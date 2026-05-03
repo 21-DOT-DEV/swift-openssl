@@ -37,6 +37,9 @@ playground.xcworkspace
 # Vendir
 .vendir-tmp-*/
 .vendir-cache/
+# `directory:` source produces a content-free lock; provenance lives in
+# scripts/vendir-upstream.json instead.
+vendir.lock.yml
 
 # CocoaPods
 #
