@@ -24,6 +24,9 @@
 // unit-testable without invoking external processes.
 
 import Foundation
+
+#if os(macOS) || os(Linux)
+
 import VendirSyncLib
 
 extension Configure {
@@ -98,3 +101,5 @@ extension Configure {
         mustRun("git", ["-C", cacheURL.path, "clean", "-fdx"])
     }
 }
+
+#endif

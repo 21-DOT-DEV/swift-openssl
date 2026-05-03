@@ -13,6 +13,9 @@
 // is the sidecar that recovers that provenance.
 
 import Foundation
+
+#if os(macOS) || os(Linux)
+
 import VendirSyncLib
 
 enum PreSync {
@@ -103,3 +106,5 @@ enum PreSync {
         }
     }
 }
+
+#endif

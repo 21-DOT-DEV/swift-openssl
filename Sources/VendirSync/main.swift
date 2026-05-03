@@ -27,8 +27,17 @@
 //
 // Dev-only target — gated out of tagged releases so consumers don't pay for
 // it. See Package.swift's `Target.developmentTargets`.
+//
+// `Process` (used throughout this target) is unavailable on iOS / tvOS /
+// watchOS / visionOS. The `#if os(macOS) || os(Linux)` gate below makes
+// non-supported platforms see a stub-only `main.swift` so xcodebuild's
+// multi-platform builds (apple-builds.yml) don't fail compilation. The
+// supported-platform code is unchanged.
 
 import Foundation
+
+#if os(macOS) || os(Linux)
+
 import VendirSyncLib
 
 let repoRoot: URL = {
@@ -167,3 +176,14 @@ do {
     FileHandle.standardError.write(Data("VendirSync failed: \(error)\n".utf8))
     exit(1)
 }
+
+#else
+
+// Stub for unsupported platforms (iOS / tvOS / watchOS / visionOS).
+// Process is unavailable; this binary cannot run here. The stub ensures
+// xcodebuild can compile the target as part of multi-platform package
+// builds without breaking.
+FileHandle.standardError.write(Data("VendirSync requires macOS or Linux\n".utf8))
+exit(1)
+
+#endif
